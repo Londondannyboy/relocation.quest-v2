@@ -30,3 +30,6 @@ Thumbs.db
 # Python
 *.egg
 .eggs/
+.env.vercel
+.env.local
+.env
