@@ -253,78 +253,84 @@ SELECT topic_name, topic_keywords FROM topic_images;
 
 ---
 
-## What's Working
+## What's Working (Updated Jan 8, 2026)
 
 ### Infrastructure
 - [x] Frontend deployed to Vercel
 - [x] Agent deployed to Railway (Python with railway.toml)
 - [x] Database migrated to dedicated Neon instance
 - [x] 210 articles imported with content_text
-- [x] 6 destinations with full structured data
-- [x] 20 topic images for background switching
+- [x] 217 jobs migrated from V1
+- [x] 500 skills migrated from V1
+- [x] **17 destinations** with full structured data (not 6!)
+- [x] 22 topic images for background switching
+
+### Destinations in Database
+Portugal, Spain, Cyprus, Dubai, Canada, Australia, UK, New Zealand, France, Germany, Netherlands, Mexico, Thailand, Malta, Greece, Italy, Indonesia/Bali
 
 ### Frontend Pages (All Created)
-- [x] `/` - Main page with VoiceWidget and CopilotKit
+- [x] `/` - Main page with VoiceWidget, CopilotKit, AnimatedExamples, TrustBadges
 - [x] `/destinations` - Index page listing all destinations
-- [x] `/destinations/[slug]` - Dynamic destination pages with tabs (Overview, Visas, Costs, Jobs)
+- [x] `/destinations/[slug]` - Dynamic pages with Image Gallery + Similar Destinations
 - [x] `/guides` - Articles organized by category
 - [x] `/guides/digital-nomad-visas` - SEO optimized visa guide
 - [x] `/guides/cost-of-living` - Cost comparison page
-- [x] `/contact` - Contact page
-- [x] `/privacy` - Privacy policy
-- [x] `/terms` - Terms of service
-- [x] `/articles` - All articles listing
+- [x] `/contact`, `/privacy`, `/terms`, `/articles`
 
-### SEO & Navigation
-- [x] Dynamic metadata on destination pages (`generateMetadata`)
-- [x] Dynamic sitemap (`sitemap.ts`) with all pages
-- [x] robots.txt
-- [x] Header with Guides, Destinations, Contact links
-- [x] Footer with 4-column layout (Brand, Destinations, Resources, Company)
+### Generative UI Components (NEW)
+All in `src/components/generative-ui/`:
+- [x] `DestinationCard.tsx` - Full destination overview with tabs
+- [x] `DestinationCardCompact` - Grid cards for recommendations
+- [x] `CostOfLivingChart.tsx` - City-level cost breakdown with visual bars
+- [x] `DestinationComparison.tsx` - Side-by-side comparison with tabs
+- [x] `VisaGrid.tsx` - Visa options with badges and requirements
+- All registered with `useRenderToolCall` in page.tsx
 
-### UI
-- [x] VoiceWidget centered and large
-- [x] CopilotSidebar collapsed by default
-- [x] Immediate background change on topic click
-- [x] Background brightness (0.85) and opacity (70%)
-- [x] Unsplash API integration
+### Destination Page Features (NEW)
+- [x] Image Gallery (6 Unsplash photos with lightbox)
+- [x] Similar Destinations (4 related destinations, prioritizes same region)
+- [x] Dynamic hero images per destination
+- [x] Tabbed layout (Overview, Visas, Costs, Jobs)
 
-### Agent
-- [x] `get_destination_by_slug()` function
-- [x] `search_destinations()` function
-- [x] Keyword search on content_text
-- [x] `get_all_destinations()` - lists all 17 destinations
-- [x] `compare_destinations()` - side-by-side comparison
-- [x] `get_visa_info()` - visa details from DB
-- [x] `get_cost_of_living()` - city-level cost breakdown
-- [x] `show_cost_of_living` tool - DB-driven
-- [x] `compare_two_destinations` tool - compare any 2 destinations
-- [x] `get_destination_details` tool - comprehensive destination info
+### Agent Tools
+- [x] `show_featured_destinations` - DB-driven
+- [x] `show_visa_timeline` - Uses DB visa data
+- [x] `show_cost_of_living` - City-level cost breakdown
+- [x] `compare_two_destinations` - Compare any 2 destinations
+- [x] `get_destination_details` - Comprehensive destination info
+- [x] System prompt lists all 17 destinations
 
 ---
 
 ## Next Phase Tasks
 
-See `PLAN.md` for comprehensive roadmap with 6 phases.
+See `PLAN.md` for comprehensive roadmap.
 
-### Immediate (Phase 1)
-1. [ ] Add animated "What can ATLAS help with?" examples
-2. [ ] Add trust badges (powered by logos)
-3. [ ] Add image gallery to destination pages
-4. [ ] Add "Similar Destinations" recommendations
-5. [ ] Ensure agent returns rich UI cards
+### COMPLETED (Phase 1)
+- [x] Add animated "What can ATLAS help with?" examples
+- [x] Add trust badges (powered by logos)
+- [x] Add image gallery to destination pages
+- [x] Add "Similar Destinations" recommendations
+- [x] Add 17 destinations (all initial + additional)
+- [x] Create generative UI components
 
-### Interactive Tools (Phase 2)
-6. [ ] Cost of Living Calculator (`/tools/cost-calculator`)
-7. [ ] Destination Comparison Tool (`/tools/compare`)
-8. [ ] Visa Timeline Tool (`/tools/visa-timeline`)
-9. [ ] Relocation Readiness Quiz (`/tools/quiz`)
+### REMAINING (Priority Order)
 
-### Content Expansion (Phase 5)
-10. [x] Add more destinations (UK, New Zealand, France, Germany, Netherlands, Mexico, Thailand)
-11. [ ] Create SEO landing pages (`/moving-from-usa`, `/best-countries-for/*`)
-12. [ ] Clean up remaining VIC references
-13. [ ] Add Malta, Greece, Italy, Bali/Indonesia destinations
+#### Immediate
+1. [ ] Test all generative UI components in chat
+2. [ ] Ensure agent returns UI components (not just text)
+3. [ ] Fix any mobile layout issues
+4. [ ] Test voice interaction flow
+
+#### Interactive Tools (Phase 2)
+5. [ ] Cost of Living Calculator (`/tools/cost-calculator`)
+6. [ ] Destination Comparison Tool (`/tools/compare`)
+7. [ ] Visa Timeline Tool (`/tools/visa-timeline`)
+8. [ ] Relocation Readiness Quiz (`/tools/quiz`)
+
+#### Content & SEO (Phase 4)
+9. [ ] Create SEO landing pages (`/moving-from-usa`, `/best-countries-for/*`)
+10. [ ] Add vector search with Voyage AI embeddings
 
 ---
 

@@ -1,15 +1,16 @@
 # Relocation Quest V2 - Implementation Plan
 
-**Last Updated:** January 8, 2026
+**Last Updated:** January 8, 2026 (Context #2)
 
 ---
 
 ## Project Overview
 
 Voice-first AI relocation advisor demo showcasing:
-- **CopilotKit** - AI chat with generative UI
+- **CopilotKit** - AI chat with generative UI components
 - **Hume EVI** - Voice-first interface
 - **Neon PostgreSQL** - Database with all content
+- **Pydantic AI** - Agent framework
 
 ---
 
@@ -23,13 +24,18 @@ Voice-first AI relocation advisor demo showcasing:
 
 ---
 
-## ✅ COMPLETED WORK
+## COMPLETED WORK (Context #1-2)
 
-### Database
+### Database Migration
 - [x] 210 articles migrated with `content_text` column
-- [x] 6 destinations with full JSONB (Portugal, Spain, Cyprus, Dubai, Canada, Australia)
-- [x] 20 topic_images for background switching
-- [x] Agent database functions (`get_destination_by_slug`, `search_destinations`)
+- [x] 217 jobs migrated from V1
+- [x] 500 skills migrated from V1
+- [x] **17 destinations** with full JSONB data:
+  - Portugal, Spain, Cyprus, Dubai, Canada, Australia (initial 6)
+  - UK, New Zealand, France, Germany, Netherlands, Mexico, Thailand (added 7)
+  - Malta, Greece, Italy, Indonesia/Bali (added 4)
+- [x] 22 topic_images for background switching
+- [x] contact_submissions table schema ready
 
 ### Frontend Pages
 - [x] `/` - Main page with VoiceWidget and CopilotKit
@@ -38,203 +44,70 @@ Voice-first AI relocation advisor demo showcasing:
 - [x] `/guides` - Articles organized by category
 - [x] `/guides/digital-nomad-visas` - SEO optimized visa guide
 - [x] `/guides/cost-of-living` - Cost comparison page
-- [x] `/contact` - Contact page
-- [x] `/privacy` - Privacy policy
-- [x] `/terms` - Terms of service
+- [x] `/contact`, `/privacy`, `/terms` - Static pages
 
-### SEO & Navigation
-- [x] Dynamic metadata on destination pages (`generateMetadata`)
-- [x] Dynamic sitemap with all pages
-- [x] robots.txt
-- [x] Header with full navigation
-- [x] Footer with 4-column layout
-
-### UI
-- [x] VoiceWidget centered with `size="large"` and `centered={true}`
+### Homepage Enhancements (Completed)
+- [x] AnimatedExamples - Rotating prompt suggestions
+- [x] TrustBadges - CopilotKit, Hume, Neon logos
+- [x] VoiceWidget centered with `size="large"`
 - [x] CopilotSidebar `defaultOpen={false}`
-- [x] Background brightness fixed (0.85) with opacity (70%)
 - [x] Revolving hero images (8-second cycle)
 
-### Backend
-- [x] Railway deploying Python (railway.toml)
-- [x] Keyword search on content_text
-- [x] Health endpoint working
+### Generative UI Components (Completed)
+- [x] `DestinationCard` - Full destination overview with tabs
+- [x] `DestinationCardCompact` - Grid cards for recommendations
+- [x] `CostOfLivingChart` - City-level cost breakdown with bars
+- [x] `DestinationComparison` - Side-by-side comparison UI
+- [x] `VisaGrid` - Visa options with badges and requirements
+- [x] All components registered with `useRenderToolCall`
+
+### Destination Pages (Completed)
+- [x] Image Gallery - 6 images from Unsplash with lightbox
+- [x] Similar Destinations - 4 related destinations at bottom
+- [x] Dynamic hero images per destination
+- [x] Tabbed layout (Overview, Visas, Costs, Jobs)
+
+### Agent Tools (Completed)
+- [x] `show_featured_destinations` - DB-driven
+- [x] `show_visa_timeline` - Uses DB visa data
+- [x] `show_cost_of_living` - City-level cost breakdown
+- [x] `compare_two_destinations` - Compare any 2 destinations
+- [x] `get_destination_details` - Comprehensive destination info
+- [x] System prompt lists all 17 destinations
 
 ---
 
-## 🚀 NEXT PHASE PLAN
+## REMAINING TASKS (Priority Order)
 
-### PHASE 1: Core Polish (Immediate)
+### Phase 1: Immediate Polish
+- [ ] Test all generative UI components in chat
+- [ ] Ensure agent returns UI components (not just text)
+- [ ] Fix any mobile layout issues
+- [ ] Test voice interaction flow
 
-#### 1.1 Homepage Enhancement
-- [ ] Add animated "What can ATLAS help with?" examples that cycle
-- [ ] Add trust badges (powered by logos)
-- [ ] Add recent success stories carousel
-- [ ] Improve mobile hero layout
+### Phase 2: Interactive Tools
+- [ ] Cost of Living Calculator (`/tools/cost-calculator`)
+- [ ] Destination Comparison Tool (`/tools/compare`)
+- [ ] Visa Timeline Tool (`/tools/visa-timeline`)
+- [ ] Relocation Readiness Quiz (`/tools/quiz`)
 
-#### 1.2 Destination Pages
-- [ ] Add image gallery section (Unsplash integration)
-- [ ] Add "Similar Destinations" recommendations
-- [ ] Add "Start your journey" CTA that opens CopilotKit
-- [ ] Add social sharing buttons
-
-#### 1.3 Agent Improvements
-- [ ] Ensure agent returns rich UI cards (not just text)
-- [ ] Add destination comparison tool
-- [ ] Add visa eligibility checker
+### Phase 3: Agent Improvements
+- [ ] Add vector search with Voyage AI embeddings
 - [ ] Improve error handling/fallbacks
+- [ ] Add personalization (remember user priorities)
+- [ ] Add visa eligibility checker tool
 
----
+### Phase 4: Content & SEO
+- [ ] SEO landing pages (`/moving-from-usa`, `/best-countries-for/*`)
+- [ ] More articles specific to new destinations
+- [ ] Video testimonials integration
+- [ ] Expert interviews content
 
-### PHASE 2: Interactive Tools
-
-#### 2.1 Cost of Living Calculator
-```
-Location: /tools/cost-calculator
-Features:
-- Select destination
-- Input current salary/budget
-- Calculate equivalent lifestyle
-- Show breakdown by category
-- Compare up to 3 cities
-```
-
-#### 2.2 Destination Comparison Tool
-```
-Location: /tools/compare
-Features:
-- Side-by-side comparison (2-4 destinations)
-- Radar charts for categories
-- Pros/cons summary
-- Best for: Remote workers / Families / Retirees
-```
-
-#### 2.3 Visa Timeline Tool
-```
-Location: /tools/visa-timeline
-Features:
-- Select visa type
-- Show application steps
-- Estimated processing time
-- Document checklist
-- Cost breakdown
-```
-
-#### 2.4 Relocation Readiness Quiz
-```
-Location: /tools/quiz
-Features:
-- 10-15 questions about priorities
-- Budget, climate, language preferences
-- Work style (remote, local job, entrepreneur)
-- Results: Top 3 destination matches
-```
-
----
-
-### PHASE 3: Enhanced Agent Capabilities
-
-#### 3.1 Vector Search (Voyage AI)
-```python
-# Add to database.py
-async def search_articles_semantic(query: str, limit: int = 5):
-    """Semantic search using Voyage embeddings."""
-    embedding = await get_embedding(query)
-    results = await conn.fetch("""
-        SELECT * FROM articles
-        ORDER BY embedding <-> $1
-        LIMIT $2
-    """, embedding, limit)
-    return results
-```
-
-#### 3.2 Structured Responses
-```python
-# Agent returns structured data for CopilotKit
-{
-  "type": "destination_comparison",
-  "data": {
-    "destinations": [...],
-    "comparison_metrics": [...],
-    "recommendation": "..."
-  }
-}
-```
-
-#### 3.3 Personalization
-- Remember user's mentioned priorities
-- Adjust recommendations based on conversation
-- Offer follow-up suggestions
-
----
-
-### PHASE 4: User Features
-
-#### 4.1 Save & Share
-- [ ] Save destinations to wishlist (local storage initially)
-- [ ] Share comparison results
-- [ ] Export relocation checklist as PDF
-
-#### 4.2 User Dashboard (Future)
-- [ ] Neon Auth integration
-- [ ] Saved destinations
-- [ ] Conversation history
-- [ ] Document progress tracker
-
----
-
-### PHASE 5: Content Expansion
-
-#### 5.1 More Destinations
-Priority to add (using same JSONB structure):
-1. Mexico (digital nomad visa)
-2. Thailand (remote worker visas)
-3. Bali/Indonesia
-4. Malta (tax benefits)
-5. Greece (Golden Visa)
-6. Italy (Digital Nomad Visa)
-7. Netherlands (DAFT treaty)
-8. Germany (freelancer visa)
-
-#### 5.2 SEO Landing Pages
-- [ ] `/moving-from-usa` - Country-specific departure guides
-- [ ] `/moving-from-uk`
-- [ ] `/best-countries-for/remote-workers`
-- [ ] `/best-countries-for/retirees`
-- [ ] `/best-countries-for/entrepreneurs`
-- [ ] `/visa-types/golden-visa-guide`
-- [ ] `/visa-types/digital-nomad-visa-guide`
-
-#### 5.3 Content Types
-- [ ] Video testimonials (embedded YouTube)
-- [ ] Podcast episodes
-- [ ] Expert interviews
-
----
-
-### PHASE 6: Performance & Polish
-
-#### 6.1 Performance
-- [ ] Image optimization (next/image everywhere)
+### Phase 5: Performance
+- [ ] Image optimization (next/image)
 - [ ] Edge caching for API routes
 - [ ] Lazy load destination data
-- [ ] Prefetch on hover
-
-#### 6.2 Mobile Experience
-- [ ] Responsive voice widget
-- [ ] Touch-friendly comparisons
-- [ ] Mobile-first destination pages
-
-#### 6.3 Loading States
-- [ ] Skeleton loaders
-- [ ] Optimistic updates
-- [ ] Better error boundaries
-
-#### 6.4 Analytics
-- [ ] Vercel Analytics
-- [ ] Track popular destinations
-- [ ] Track common questions
-- [ ] Conversion tracking
+- [ ] Mobile-first responsive improvements
 
 ---
 
@@ -246,7 +119,7 @@ id, slug, title, content, content_text, excerpt, hero_image_url,
 country, article_mode, category, is_featured, published_at, structured_data
 ```
 
-### destinations (6 rows)
+### destinations (17 rows)
 ```sql
 id, slug, country_name, flag, region, hero_title, hero_subtitle,
 language, enabled, featured, priority,
@@ -255,44 +128,37 @@ cost_of_living JSONB, job_market JSONB, faqs JSONB,
 meta_title, meta_description, hero_image_url
 ```
 
-### topic_images (20 rows)
+### jobs (217 rows)
 ```sql
-id, topic_name, topic_keywords[], image_url, country
+id, title, company, location, salary, description, job_source,
+posted_date, category, remote, slug, company_logo, job_url, status
+```
+
+### skills (500 rows)
+```sql
+id, name
 ```
 
 ---
 
 ## Key Files
 
+### Frontend
 | File | Purpose |
 |------|---------|
-| `src/app/page.tsx` | Main page with voice widget |
-| `src/app/destinations/[slug]/page.tsx` | Dynamic destination pages |
-| `src/app/api/destinations/[slug]/route.ts` | Destination API |
-| `src/components/VoiceWidget.tsx` | Voice widget |
-| `agent/src/agent.py` | ATLAS agent |
-| `agent/src/database.py` | Neon queries |
+| `src/app/page.tsx` | Main page with voice widget, CopilotKit, generative UI rendering |
+| `src/app/destinations/[slug]/DestinationClient.tsx` | Destination pages with gallery, similar destinations |
+| `src/components/generative-ui/DestinationCard.tsx` | Rich destination card |
+| `src/components/generative-ui/CostOfLivingChart.tsx` | Cost breakdown visual |
+| `src/components/generative-ui/DestinationComparison.tsx` | Side-by-side comparison |
+| `src/components/generative-ui/VisaGrid.tsx` | Visa options grid |
+| `src/app/api/unsplash/route.ts` | Background images + gallery API |
 
----
-
-## Environment Variables
-
-### Vercel
-```
-AGENT_URL=https://atlas-agent-production.up.railway.app/agui
-DATABASE_URL=postgresql://...
-HUME_API_KEY=...
-HUME_SECRET_KEY=...
-NEXT_PUBLIC_HUME_CONFIG_ID=...
-UNSPLASH_ACCESS_KEY=...
-```
-
-### Railway
-```
-DATABASE_URL=postgresql://...
-GROQ_API_KEY=...
-VOYAGE_API_KEY=...
-```
+### Backend
+| File | Purpose |
+|------|---------|
+| `agent/src/agent.py` | ATLAS agent with all tools |
+| `agent/src/database.py` | Neon queries - destinations, articles, visa, cost |
 
 ---
 
@@ -317,6 +183,6 @@ psql "postgresql://neondb_owner:npg_3aW1xuoyUiYk@ep-wandering-leaf-ab17v6rr-pool
 ## Restart Instructions
 
 1. Read `CLAUDE.md` for full technical reference
-2. Read this `PLAN.md` for current status and roadmap
+2. Check this file for current task status
 3. Check agent health: `curl https://atlas-agent-production.up.railway.app/health`
-4. Start with Phase 1 immediate tasks
+4. Continue with remaining tasks starting at Phase 1
