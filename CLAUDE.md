@@ -26,8 +26,12 @@ postgresql://neondb_owner:npg_3aW1xuoyUiYk@ep-wandering-leaf-ab17v6rr-pooler.eu-
 | Table | Records | Purpose |
 |-------|---------|---------|
 | `articles` | 210 | Relocation content (guides, stories, nomad content) |
-| `topic_images` | 20 | Destination background images with keyword arrays |
-| `destinations` | 6 | Full structured destination data (Portugal, Spain, Cyprus, Dubai, Canada, Australia) |
+| `topic_images` | 22 | Destination background images with keyword arrays |
+| `destinations` | 17 | Full structured destination data (Portugal, Spain, Cyprus, Dubai, Canada, Australia, UK, New Zealand, France, Germany, Netherlands, Mexico, Thailand, Malta, Greece, Italy, Indonesia/Bali) |
+| `jobs` | 217 | Active job listings (migrated from V1) |
+| `skills` | 500 | Skills reference table for job matching |
+| `companies` | 0 | Company/agency listings (schema ready) |
+| `contact_submissions` | 0 | Contact form submissions (schema ready) |
 | `users` | - | User accounts |
 | `user_data` | - | User preferences and preferred_name |
 
@@ -251,36 +255,76 @@ SELECT topic_name, topic_keywords FROM topic_images;
 
 ## What's Working
 
+### Infrastructure
 - [x] Frontend deployed to Vercel
 - [x] Agent deployed to Railway (Python with railway.toml)
 - [x] Database migrated to dedicated Neon instance
 - [x] 210 articles imported with content_text
 - [x] 6 destinations with full structured data
 - [x] 20 topic images for background switching
+
+### Frontend Pages (All Created)
+- [x] `/` - Main page with VoiceWidget and CopilotKit
+- [x] `/destinations` - Index page listing all destinations
+- [x] `/destinations/[slug]` - Dynamic destination pages with tabs (Overview, Visas, Costs, Jobs)
+- [x] `/guides` - Articles organized by category
+- [x] `/guides/digital-nomad-visas` - SEO optimized visa guide
+- [x] `/guides/cost-of-living` - Cost comparison page
+- [x] `/contact` - Contact page
+- [x] `/privacy` - Privacy policy
+- [x] `/terms` - Terms of service
+- [x] `/articles` - All articles listing
+
+### SEO & Navigation
+- [x] Dynamic metadata on destination pages (`generateMetadata`)
+- [x] Dynamic sitemap (`sitemap.ts`) with all pages
+- [x] robots.txt
+- [x] Header with Guides, Destinations, Contact links
+- [x] Footer with 4-column layout (Brand, Destinations, Resources, Company)
+
+### UI
 - [x] VoiceWidget centered and large
 - [x] CopilotSidebar collapsed by default
 - [x] Immediate background change on topic click
+- [x] Background brightness (0.85) and opacity (70%)
 - [x] Unsplash API integration
+
+### Agent
+- [x] `get_destination_by_slug()` function
+- [x] `search_destinations()` function
+- [x] Keyword search on content_text
+- [x] `get_all_destinations()` - lists all 17 destinations
+- [x] `compare_destinations()` - side-by-side comparison
+- [x] `get_visa_info()` - visa details from DB
+- [x] `get_cost_of_living()` - city-level cost breakdown
+- [x] `show_cost_of_living` tool - DB-driven
+- [x] `compare_two_destinations` tool - compare any 2 destinations
+- [x] `get_destination_details` tool - comprehensive destination info
 
 ---
 
-## Pending Tasks
+## Next Phase Tasks
 
-### High Priority
-1. [ ] **Update frontend to fetch destinations from database** (currently uses static `lib/destinations/data.ts`)
-2. [ ] **Migrate remaining static guide pages** (moving-to-cyprus, what-is-corporate-relocation, etc.)
-3. [ ] **Test full end-to-end flow** (voice → agent → visualization)
+See `PLAN.md` for comprehensive roadmap with 6 phases.
 
-### Medium Priority
-4. [ ] Create API route `/api/destinations/[slug]` to fetch from DB
-5. [ ] Update `/destinations/[slug]/page.tsx` to use database
-6. [ ] Set up Neon Auth
-7. [ ] Add more destinations to database
+### Immediate (Phase 1)
+1. [ ] Add animated "What can ATLAS help with?" examples
+2. [ ] Add trust badges (powered by logos)
+3. [ ] Add image gallery to destination pages
+4. [ ] Add "Similar Destinations" recommendations
+5. [ ] Ensure agent returns rich UI cards
 
-### Lower Priority
-8. [ ] Clean up remaining VIC references in profile/dashboard pages
-9. [ ] Add structured_data JSONB to articles for comparisons
-10. [ ] Implement vector search with embeddings
+### Interactive Tools (Phase 2)
+6. [ ] Cost of Living Calculator (`/tools/cost-calculator`)
+7. [ ] Destination Comparison Tool (`/tools/compare`)
+8. [ ] Visa Timeline Tool (`/tools/visa-timeline`)
+9. [ ] Relocation Readiness Quiz (`/tools/quiz`)
+
+### Content Expansion (Phase 5)
+10. [x] Add more destinations (UK, New Zealand, France, Germany, Netherlands, Mexico, Thailand)
+11. [ ] Create SEO landing pages (`/moving-from-usa`, `/best-countries-for/*`)
+12. [ ] Clean up remaining VIC references
+13. [ ] Add Malta, Greece, Italy, Bali/Indonesia destinations
 
 ---
 

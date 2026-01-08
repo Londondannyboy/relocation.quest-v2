@@ -8,13 +8,81 @@ import { ArticleGrid } from "@/components/generative-ui/ArticleGrid";
 import { ArticleCard } from "@/components/generative-ui/ArticleCard";
 import { LocationMap } from "@/components/generative-ui/LocationMap";
 import { Timeline } from "@/components/generative-ui/Timeline";
-// BookDisplay removed - not needed for relocation
 import { TopicContext } from "@/components/generative-ui/TopicContext";
 import { TopicImage } from "@/components/generative-ui/TopicImage";
+// New polished components for shock and awe
+import { DestinationCard, DestinationCardCompact } from "@/components/generative-ui/DestinationCard";
+import { CostOfLivingChart } from "@/components/generative-ui/CostOfLivingChart";
+import { DestinationComparison } from "@/components/generative-ui/DestinationComparison";
+import { VisaGrid } from "@/components/generative-ui/VisaGrid";
 import { DestinationExpertMessage, DestinationExpertThinking } from "@/components/DestinationExpert";
 import { CustomUserMessage, ChatUserContext } from "@/components/ChatMessages";
-import { useCallback, useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { authClient } from "@/lib/auth/client";
+
+// Animated example prompts that rotate
+const EXAMPLE_PROMPTS = [
+  "Compare Portugal and Spain for digital nomads",
+  "What visa do I need for Thailand?",
+  "Cost of living in Bali vs Mexico City",
+  "Best countries for remote work",
+  "How do I get a Golden Visa in Greece?",
+  "UK relocation tax allowance explained",
+];
+
+function AnimatedExamples() {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isVisible, setIsVisible] = useState(true);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIsVisible(false);
+      setTimeout(() => {
+        setCurrentIndex((i) => (i + 1) % EXAMPLE_PROMPTS.length);
+        setIsVisible(true);
+      }, 300);
+    }, 3500);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="h-8 flex items-center justify-center overflow-hidden">
+      <p className={`text-white/70 text-sm md:text-base transition-all duration-300 ${
+        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'
+      }`}>
+        &ldquo;{EXAMPLE_PROMPTS[currentIndex]}&rdquo;
+      </p>
+    </div>
+  );
+}
+
+function TrustBadges() {
+  return (
+    <div className="flex items-center justify-center gap-6 opacity-70 hover:opacity-100 transition-opacity">
+      <div className="flex items-center gap-2 text-white/60 text-xs">
+        <span>Powered by</span>
+      </div>
+      <a href="https://copilotkit.ai" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-white/80 hover:text-white transition-colors">
+        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+        </svg>
+        <span className="text-xs font-medium">CopilotKit</span>
+      </a>
+      <a href="https://hume.ai" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-white/80 hover:text-white transition-colors">
+        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+          <circle cx="12" cy="12" r="10"/>
+        </svg>
+        <span className="text-xs font-medium">Hume AI</span>
+      </a>
+      <a href="https://neon.tech" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-white/80 hover:text-white transition-colors">
+        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+          <rect x="3" y="3" width="18" height="18" rx="2"/>
+        </svg>
+        <span className="text-xs font-medium">Neon</span>
+      </a>
+    </div>
+  );
+}
 
 // Loading component for tool results
 function ToolLoading({ title }: { title: string }) {
@@ -494,6 +562,142 @@ export default function Home() {
   });
 
   // =============================================================================
+  // NEW SHOCK & AWE COMPONENTS
+  // These render beautiful UI for destination, visa, and cost queries
+  // =============================================================================
+
+  // Featured destinations grid
+  useRenderToolCall({
+    name: "show_featured_destinations",
+    render: ({ result, status }) => {
+      if (status !== "complete" || !result) return <ToolLoading title="Loading destinations..." />;
+      if (!result?.found || !result?.destinations) {
+        return (
+          <div className="p-4 bg-stone-50 rounded-lg text-stone-500">
+            {result?.message || "Couldn't load destinations"}
+          </div>
+        );
+      }
+      return (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="font-bold text-stone-800">Featured Destinations</h3>
+            <span className="text-sm text-stone-500">{result.total_destinations} countries</span>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            {result.destinations.slice(0, 8).map((dest: { name: string; flag: string; region: string; slug: string; highlight?: string; featured?: boolean }) => (
+              <DestinationCardCompact
+                key={dest.slug}
+                name={dest.name}
+                flag={dest.flag}
+                region={dest.region}
+                slug={dest.slug}
+              />
+            ))}
+          </div>
+        </div>
+      );
+    },
+  });
+
+  // Visa options grid
+  useRenderToolCall({
+    name: "show_visa_timeline",
+    render: ({ result, status }) => {
+      if (status !== "complete" || !result) return <ToolLoading title="Loading visa information..." />;
+      if (!result?.found || !result?.events) {
+        return (
+          <div className="p-4 bg-stone-50 rounded-lg text-stone-500">
+            {result?.message || "No visa information available"}
+          </div>
+        );
+      }
+      return (
+        <VisaGrid
+          country={result.destination}
+          flag={result.flag || "🌍"}
+          visas={result.events.map((e: { title: string; description: string; requirements?: string[]; isWorkPermit?: boolean; isResidencyPath?: boolean }) => ({
+            name: e.title,
+            description: e.description,
+            requirements: e.requirements,
+            isWorkPermit: e.isWorkPermit,
+            isResidencyPath: e.isResidencyPath,
+          }))}
+          hero_image_url={result.hero_image_url}
+        />
+      );
+    },
+  });
+
+  // Cost of living chart
+  useRenderToolCall({
+    name: "show_cost_of_living",
+    render: ({ result, status }) => {
+      if (status !== "complete" || !result) return <ToolLoading title="Loading cost data..." />;
+      if (!result?.found || !result?.cities) {
+        return (
+          <div className="p-4 bg-stone-50 rounded-lg text-stone-500">
+            {result?.message || "No cost data available"}
+          </div>
+        );
+      }
+      return (
+        <CostOfLivingChart
+          country={result.country}
+          flag={result.flag || "🌍"}
+          cities={result.cities}
+          job_market={result.job_market}
+        />
+      );
+    },
+  });
+
+  // Destination comparison
+  useRenderToolCall({
+    name: "compare_two_destinations",
+    render: ({ result, status }) => {
+      if (status !== "complete" || !result) return <ToolLoading title="Comparing destinations..." />;
+      if (!result?.found || !result?.comparison) {
+        return (
+          <div className="p-4 bg-stone-50 rounded-lg text-stone-500">
+            {result?.message || "Couldn't compare destinations"}
+          </div>
+        );
+      }
+      return <DestinationComparison comparison={result.comparison} />;
+    },
+  });
+
+  // Full destination details
+  useRenderToolCall({
+    name: "get_destination_details",
+    render: ({ result, status }) => {
+      if (status !== "complete" || !result) return <ToolLoading title="Loading destination..." />;
+      if (!result?.found || !result?.destination) {
+        return (
+          <div className="p-4 bg-stone-50 rounded-lg text-stone-500">
+            {result?.message || "Destination not found"}
+          </div>
+        );
+      }
+      return (
+        <DestinationCard
+          name={result.destination.name}
+          flag={result.destination.flag}
+          region={result.destination.region}
+          language={result.destination.language}
+          hero_image_url={result.destination.hero_image_url}
+          hero_subtitle={result.destination.hero_subtitle}
+          quick_facts={result.quick_facts}
+          highlights={result.highlights}
+          visas={result.visas}
+          slug={result.destination.slug || result.destination.name?.toLowerCase().replace(/\s+/g, '-')}
+        />
+      );
+    },
+  });
+
+  // =============================================================================
   // DESTINATION EXPERT: Render delegated research results
   // When ATLAS delegates to the Destination Expert, render with distinct styling
   // =============================================================================
@@ -708,12 +912,18 @@ ${userProfile.isReturningUser ? 'This is a RETURNING user - greet them warmly.' 
             <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6 text-white drop-shadow-lg">
               Relocation Quest
             </h1>
-            <p className="text-xl md:text-2xl text-white/90 mb-10 max-w-2xl mx-auto drop-shadow">
+            <p className="text-xl md:text-2xl text-white/90 mb-4 max-w-2xl mx-auto drop-shadow">
               Your AI guide to moving abroad
             </p>
 
+            {/* Animated Examples */}
+            <div className="mb-8">
+              <p className="text-white/50 text-xs uppercase tracking-wider mb-2">Ask ATLAS anything</p>
+              <AnimatedExamples />
+            </div>
+
             {/* Centered Voice Widget - Main CTA */}
-            <div className="mb-10">
+            <div className="mb-8">
               <VoiceWidget
                 onMessage={handleVoiceMessage}
                 onDestinationMentioned={handleDestinationMentioned}
@@ -730,15 +940,20 @@ ${userProfile.isReturningUser ? 'This is a RETURNING user - greet them warmly.' 
             <div className="w-full max-w-xl mx-auto">
               <p className="text-white/60 text-sm mb-3">Or explore destinations:</p>
               <div className="flex flex-wrap justify-center gap-3">
-                {['Portugal', 'Spain', 'Cyprus', 'Dubai', 'Canada', 'Australia'].map((topic) => (
+                {['Portugal', 'Spain', 'UK', 'Dubai', 'Thailand', 'Mexico'].map((topic) => (
                   <TopicButton key={topic} topic={topic} onClick={handleTopicClick} />
                 ))}
               </div>
               <div className="flex flex-wrap justify-center gap-2 mt-3">
-                {['Digital Nomad Visa', 'Cost of Living', 'Remote Work'].map((topic) => (
+                {['Digital Nomad Visa', 'Cost of Living', 'Tax Allowance'].map((topic) => (
                   <TopicButton key={topic} topic={topic} onClick={handleTopicClick} />
                 ))}
               </div>
+            </div>
+
+            {/* Trust Badges */}
+            <div className="mt-12">
+              <TrustBadges />
             </div>
           </div>
         </section>
@@ -748,15 +963,15 @@ ${userProfile.isReturningUser ? 'This is a RETURNING user - greet them warmly.' 
           <div className="max-w-4xl mx-auto px-4 py-6">
             <div className="grid grid-cols-3 gap-4 text-center">
               <div>
-                <p className="text-2xl font-bold">200+</p>
+                <p className="text-2xl font-bold">210+</p>
                 <p className="text-xs text-gray-500">Articles</p>
               </div>
               <div>
-                <p className="text-2xl font-bold">38</p>
-                <p className="text-xs text-gray-500">Country Guides</p>
+                <p className="text-2xl font-bold">40+</p>
+                <p className="text-xs text-gray-500">Visa Types Covered</p>
               </div>
               <div>
-                <p className="text-2xl font-bold">6</p>
+                <p className="text-2xl font-bold">17</p>
                 <p className="text-xs text-gray-500">Detailed Destinations</p>
               </div>
             </div>
@@ -765,13 +980,16 @@ ${userProfile.isReturningUser ? 'This is a RETURNING user - greet them warmly.' 
 
         {/* Featured Destinations */}
         <section className="py-12 bg-white">
-          <div className="max-w-5xl mx-auto px-4">
-            <h2 className="text-2xl font-serif font-bold text-center mb-8">Featured Destinations</h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="max-w-6xl mx-auto px-4">
+            <h2 className="text-2xl font-serif font-bold text-center mb-2">Featured Destinations</h2>
+            <p className="text-gray-500 text-center mb-8">17 countries with detailed visa, cost, and lifestyle guides</p>
+
+            {/* Popular Destinations */}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
               {[
                 { slug: 'portugal', name: 'Portugal', flag: '🇵🇹' },
                 { slug: 'spain', name: 'Spain', flag: '🇪🇸' },
-                { slug: 'cyprus', name: 'Cyprus', flag: '🇨🇾' },
+                { slug: 'uk', name: 'United Kingdom', flag: '🇬🇧' },
                 { slug: 'dubai', name: 'Dubai', flag: '🇦🇪' },
                 { slug: 'canada', name: 'Canada', flag: '🇨🇦' },
                 { slug: 'australia', name: 'Australia', flag: '🇦🇺' },
@@ -785,6 +1003,39 @@ ${userProfile.isReturningUser ? 'This is a RETURNING user - greet them warmly.' 
                   <span className="font-medium text-gray-900 group-hover:text-amber-700">{dest.name}</span>
                 </a>
               ))}
+            </div>
+
+            {/* More Destinations */}
+            <h3 className="text-lg font-medium text-center mb-4 text-gray-700">More Destinations</h3>
+            <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-11 gap-2">
+              {[
+                { slug: 'cyprus', name: 'Cyprus', flag: '🇨🇾' },
+                { slug: 'new-zealand', name: 'New Zealand', flag: '🇳🇿' },
+                { slug: 'germany', name: 'Germany', flag: '🇩🇪' },
+                { slug: 'france', name: 'France', flag: '🇫🇷' },
+                { slug: 'netherlands', name: 'Netherlands', flag: '🇳🇱' },
+                { slug: 'mexico', name: 'Mexico', flag: '🇲🇽' },
+                { slug: 'thailand', name: 'Thailand', flag: '🇹🇭' },
+                { slug: 'malta', name: 'Malta', flag: '🇲🇹' },
+                { slug: 'greece', name: 'Greece', flag: '🇬🇷' },
+                { slug: 'italy', name: 'Italy', flag: '🇮🇹' },
+                { slug: 'indonesia', name: 'Bali', flag: '🇮🇩' },
+              ].map((dest) => (
+                <a
+                  key={dest.slug}
+                  href={`/destinations/${dest.slug}`}
+                  className="group p-2 rounded-lg border border-gray-100 hover:border-amber-200 hover:bg-amber-50 transition-all text-center"
+                >
+                  <span className="text-xl mb-1 block">{dest.flag}</span>
+                  <span className="text-xs text-gray-700 group-hover:text-amber-700">{dest.name}</span>
+                </a>
+              ))}
+            </div>
+
+            <div className="text-center mt-6">
+              <a href="/destinations" className="text-amber-600 hover:text-amber-800 text-sm font-medium">
+                View all destinations →
+              </a>
             </div>
           </div>
         </section>

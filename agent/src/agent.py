@@ -37,7 +37,15 @@ from .tools import (
     extract_era_from_content,
     PHONETIC_CORRECTIONS,
 )
-from .database import get_user_preferred_name
+from .database import (
+    get_user_preferred_name,
+    get_all_destinations,
+    get_destination_by_slug,
+    compare_destinations,
+    get_visa_info,
+    get_cost_of_living,
+    search_destinations as db_search_destinations,
+)
 from .destination_expert import destination_expert_agent, DestinationExpertDeps
 
 # =============================================================================
@@ -395,11 +403,17 @@ These are automatically corrected BEFORE you receive the query:
 - "ma tah/molta" -> Malta
 
 ## IDENTITY (CRITICAL - NEVER BREAK CHARACTER)
-- You ARE ATLAS, the Relocation Quest advisor
+- You ARE ATLAS, the Relocation Quest advisor with detailed guides on 17 destinations
 - You are NOT a "language model", "AI", or "assistant"
 - If asked "who are you" or "what are you": "I'm ATLAS, your relocation advisor at Relocation Quest"
-- If asked personal questions you don't know: "I'd rather focus on helping you relocate - ask me about Portugal or Cyprus!"
+- If asked personal questions you don't know: "I'd rather focus on helping you relocate - ask me about Portugal, Bali, or the UK!"
 - NEVER say "As a language model" or "I don't have access to that information"
+
+## DESTINATIONS I COVER (17 total)
+Europe: Portugal, Spain, Cyprus, UK, France, Germany, Netherlands, Malta, Greece, Italy
+Asia-Pacific: Thailand, Indonesia/Bali, Australia, New Zealand
+Middle East: Dubai (UAE)
+Americas: Canada, Mexico
 
 ## USER NAME QUESTIONS (USE THE TOOL!)
 - If user asks "what is my name", "do you know my name", or "who am I":
@@ -670,86 +684,197 @@ async def get_about_atlas(ctx: RunContext[ATLASDeps], question: str) -> dict:
 @agent.tool
 async def show_featured_destinations(ctx: RunContext[ATLASDeps]) -> dict:
     """
-    Show featured relocation destinations.
+    Show featured relocation destinations from the database.
 
     Use this when the user asks:
     - "what destinations do you cover"
     - "show me popular destinations"
     - "where can I relocate to"
     """
+    destinations = await get_all_destinations()
+
+    if not destinations:
+        return {
+            "found": False,
+            "message": "I couldn't load the destination list at the moment.",
+        }
+
+    # Format for display
+    formatted = []
+    for dest in destinations[:12]:  # Show top 12
+        formatted.append({
+            "name": dest["country_name"],
+            "flag": dest["flag"],
+            "region": dest["region"],
+            "highlight": dest.get("hero_subtitle", "")[:60],
+            "featured": dest.get("featured", False),
+            "slug": dest["slug"],
+        })
+
+    featured_count = len([d for d in formatted if d["featured"]])
+    total = len(destinations)
+
     return {
         "found": True,
-        "destinations": [
-            {
-                "name": "Portugal",
-                "image": "/destinations/portugal.jpg",
-                "highlight": "D7 Visa & NHR Tax Regime",
-                "description": "Popular for digital nomads and retirees"
-            },
-            {
-                "name": "Cyprus",
-                "image": "/destinations/cyprus.jpg",
-                "highlight": "12.5% Corporate Tax",
-                "description": "Mediterranean lifestyle with EU membership"
-            },
-            {
-                "name": "Dubai",
-                "image": "/destinations/dubai.jpg",
-                "highlight": "0% Income Tax",
-                "description": "Tax-free income and modern infrastructure"
-            }
-        ],
+        "total_destinations": total,
+        "destinations": formatted,
         "ui_component": "DestinationGrid",
-        "response_hint": "Mention that these are popular destinations and offer to explore any in detail."
+        "response_hint": f"We cover {total} destinations. {featured_count} are featured. Offer to explore any in detail."
     }
 
 
 @agent.tool
 async def show_visa_timeline(ctx: RunContext[ATLASDeps], destination: str) -> dict:
     """
-    Show a visa application timeline for a destination.
+    Show visa options and requirements for a destination.
 
-    Use this when the user asks about visa process or timeline.
+    Use this when the user asks about visa process, requirements, or timeline.
 
     Args:
-        destination: The destination to show visa timeline for
+        destination: The destination to show visa info for
     """
-    # Visa timelines for popular destinations
-    TIMELINES = {
-        "portugal": [
-            TimelineEvent(year=1, title="Gather Documents", description="Proof of income, health insurance, criminal record check (2-4 weeks)"),
-            TimelineEvent(year=2, title="NIF & Bank Account", description="Get Portuguese tax number and open bank account (1-2 weeks)"),
-            TimelineEvent(year=3, title="Submit D7 Application", description="Apply at Portuguese consulate in your country (1 day)"),
-            TimelineEvent(year=4, title="Wait for Approval", description="Processing time (2-4 months)"),
-            TimelineEvent(year=5, title="Enter Portugal", description="Visa valid for 120 days, apply for residence permit"),
-        ],
-        "cyprus": [
-            TimelineEvent(year=1, title="Gather Documents", description="Proof of income, health insurance, clean criminal record (2-4 weeks)"),
-            TimelineEvent(year=2, title="Submit Application", description="Apply at Cyprus embassy or online (1 day)"),
-            TimelineEvent(year=3, title="Wait for Approval", description="Processing time (1-2 months)"),
-            TimelineEvent(year=4, title="Receive Permit", description="Digital Nomad Visa valid for 1-3 years"),
-        ],
-        "dubai": [
-            TimelineEvent(year=1, title="Eligibility Check", description="Verify income requirements ($3,500/month) (1 week)"),
-            TimelineEvent(year=2, title="Submit Application", description="Apply online via ICA portal (1 day)"),
-            TimelineEvent(year=3, title="Medical & Emirates ID", description="Complete medical and biometrics (1-2 weeks)"),
-            TimelineEvent(year=4, title="Visa Issued", description="Remote Work Visa valid for 1 year"),
-        ],
-    }
+    visa_info = await get_visa_info(destination)
 
-    dest_lower = destination.lower()
-    for key, events in TIMELINES.items():
-        if key in dest_lower or dest_lower in key:
-            return {
-                "found": True,
-                "destination": destination,
-                "events": [e.model_dump() for e in events],
-                "ui_component": "VisaTimeline",
-            }
+    if not visa_info or not visa_info.get("visas"):
+        return {
+            "found": False,
+            "message": f"I don't have detailed visa information for {destination} yet.",
+        }
+
+    # Format visa data as timeline events
+    events = []
+    for i, visa in enumerate(visa_info["visas"][:5], 1):
+        events.append({
+            "year": i,
+            "title": visa.get("name", "Visa Option"),
+            "description": f"{visa.get('description', '')} | Cost: {visa.get('cost', 'varies')} | Processing: {visa.get('processingTime', 'varies')}",
+            "requirements": visa.get("requirements", []),
+            "isWorkPermit": visa.get("isWorkPermit", False),
+            "isResidencyPath": visa.get("isResidencyPath", False),
+        })
 
     return {
-        "found": False,
-        "message": f"I don't have a visa timeline for {destination}",
+        "found": True,
+        "destination": visa_info["country"],
+        "flag": visa_info["flag"],
+        "events": events,
+        "hero_image_url": visa_info.get("hero_image_url"),
+        "ui_component": "VisaTimeline",
+        "response_hint": f"Found {len(events)} visa options for {visa_info['country']}. Explain the key differences."
+    }
+
+
+@agent.tool
+async def compare_two_destinations(ctx: RunContext[ATLASDeps], destination1: str, destination2: str) -> dict:
+    """
+    Compare two destinations side by side.
+
+    Use this when the user asks to compare destinations, e.g.:
+    - "Compare Portugal and Spain"
+    - "What's the difference between Cyprus and Malta"
+    - "Portugal vs Dubai"
+
+    Args:
+        destination1: First destination to compare
+        destination2: Second destination to compare
+    """
+    comparison = await compare_destinations(destination1.lower(), destination2.lower())
+
+    if not comparison:
+        return {
+            "found": False,
+            "message": f"I couldn't compare {destination1} and {destination2}. Make sure both are valid destinations.",
+        }
+
+    return {
+        "found": True,
+        "comparison": comparison,
+        "ui_component": "DestinationComparison",
+        "response_hint": "Compare visa options, cost of living, and job markets. Highlight key differences."
+    }
+
+
+@agent.tool
+async def show_cost_of_living(ctx: RunContext[ATLASDeps], destination: str) -> dict:
+    """
+    Show cost of living breakdown for a destination.
+
+    Use this when the user asks about:
+    - "How much does it cost to live in X"
+    - "Cost of living in X"
+    - "How expensive is X"
+
+    Args:
+        destination: The destination to show costs for
+    """
+    cost_info = await get_cost_of_living(destination)
+
+    if not cost_info or not cost_info.get("cities"):
+        return {
+            "found": False,
+            "message": f"I don't have detailed cost information for {destination} yet.",
+        }
+
+    return {
+        "found": True,
+        "country": cost_info["country"],
+        "flag": cost_info["flag"],
+        "cities": cost_info["cities"],
+        "job_market": cost_info.get("job_market", {}),
+        "ui_component": "CostOfLiving",
+        "response_hint": f"Explain costs for {len(cost_info['cities'])} cities. Mention rent, utilities, and overall budget."
+    }
+
+
+@agent.tool
+async def get_destination_details(ctx: RunContext[ATLASDeps], destination: str) -> dict:
+    """
+    Get comprehensive details about a destination.
+
+    Use this when the user wants full information about a destination including:
+    - Quick facts (currency, language, timezone)
+    - Highlights
+    - Visa options
+    - Cost of living
+    - Job market
+    - FAQs
+
+    Args:
+        destination: The destination to get details for
+    """
+    dest = await get_destination_by_slug(destination.lower())
+
+    if not dest:
+        # Try searching
+        results = await db_search_destinations(destination)
+        if results:
+            dest = await get_destination_by_slug(results[0]["slug"])
+
+    if not dest:
+        return {
+            "found": False,
+            "message": f"I don't have a detailed guide for {destination} yet.",
+        }
+
+    return {
+        "found": True,
+        "destination": {
+            "name": dest["country_name"],
+            "flag": dest["flag"],
+            "region": dest["region"],
+            "language": dest.get("language", ""),
+            "hero_title": dest.get("hero_title", ""),
+            "hero_subtitle": dest.get("hero_subtitle", ""),
+            "hero_image_url": dest.get("hero_image_url"),
+        },
+        "quick_facts": dest.get("quick_facts", []),
+        "highlights": dest.get("highlights", []),
+        "visas": dest.get("visas", []),
+        "cost_of_living": dest.get("cost_of_living", []),
+        "job_market": dest.get("job_market", {}),
+        "faqs": dest.get("faqs", []),
+        "ui_component": "DestinationContext",
+        "response_hint": "Provide a comprehensive overview touching on visas, costs, lifestyle, and job market."
     }
 
 

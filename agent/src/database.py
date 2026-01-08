@@ -289,6 +289,122 @@ async def search_destinations(query: str) -> list[dict]:
         return []
 
 
+async def get_all_destinations() -> list[dict]:
+    """
+    Get all enabled destinations with key info.
+    Used for "what destinations do you cover" type questions.
+    """
+    try:
+        async with get_connection() as conn:
+            results = await conn.fetch("""
+                SELECT
+                    slug, country_name, flag, region,
+                    hero_subtitle, featured, priority
+                FROM destinations
+                WHERE enabled = true
+                ORDER BY featured DESC, priority DESC, country_name ASC
+            """)
+            print(f"[ATLAS DB] Retrieved {len(results)} destinations", file=sys.stderr)
+            return [dict(r) for r in results]
+    except Exception as e:
+        print(f"[ATLAS DB] Error getting destinations: {e}", file=sys.stderr)
+        return []
+
+
+async def compare_destinations(slug1: str, slug2: str) -> Optional[dict]:
+    """
+    Compare two destinations side by side.
+    Returns structured comparison data for visas, costs, and lifestyle.
+    """
+    try:
+        dest1 = await get_destination_by_slug(slug1)
+        dest2 = await get_destination_by_slug(slug2)
+
+        if not dest1 or not dest2:
+            return None
+
+        # Build comparison structure
+        comparison = {
+            "destinations": [
+                {
+                    "slug": dest1["slug"],
+                    "name": dest1["country_name"],
+                    "flag": dest1["flag"],
+                    "region": dest1["region"],
+                },
+                {
+                    "slug": dest2["slug"],
+                    "name": dest2["country_name"],
+                    "flag": dest2["flag"],
+                    "region": dest2["region"],
+                }
+            ],
+            "visas": {
+                dest1["country_name"]: dest1.get("visas", []),
+                dest2["country_name"]: dest2.get("visas", []),
+            },
+            "cost_of_living": {
+                dest1["country_name"]: dest1.get("cost_of_living", []),
+                dest2["country_name"]: dest2.get("cost_of_living", []),
+            },
+            "job_market": {
+                dest1["country_name"]: dest1.get("job_market", {}),
+                dest2["country_name"]: dest2.get("job_market", {}),
+            },
+        }
+
+        print(f"[ATLAS DB] Compared {dest1['country_name']} vs {dest2['country_name']}", file=sys.stderr)
+        return comparison
+    except Exception as e:
+        print(f"[ATLAS DB] Error comparing destinations: {e}", file=sys.stderr)
+        return None
+
+
+async def get_visa_info(destination: str) -> Optional[dict]:
+    """
+    Get visa information for a destination.
+    Returns visas with processing times, costs, and requirements.
+    """
+    dest = await get_destination_by_slug(destination)
+    if not dest:
+        # Try searching by country name
+        results = await search_destinations(destination)
+        if results:
+            dest = await get_destination_by_slug(results[0]["slug"])
+
+    if not dest:
+        return None
+
+    return {
+        "country": dest["country_name"],
+        "flag": dest["flag"],
+        "visas": dest.get("visas", []),
+        "hero_image_url": dest.get("hero_image_url"),
+    }
+
+
+async def get_cost_of_living(destination: str) -> Optional[dict]:
+    """
+    Get cost of living data for a destination.
+    Returns city-level breakdown of costs.
+    """
+    dest = await get_destination_by_slug(destination)
+    if not dest:
+        results = await search_destinations(destination)
+        if results:
+            dest = await get_destination_by_slug(results[0]["slug"])
+
+    if not dest:
+        return None
+
+    return {
+        "country": dest["country_name"],
+        "flag": dest["flag"],
+        "cities": dest.get("cost_of_living", []),
+        "job_market": dest.get("job_market", {}),
+    }
+
+
 async def get_topic_image(query: str) -> Optional[str]:
     """
     Look up a topic image using the topic_images table.
