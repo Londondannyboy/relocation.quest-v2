@@ -3,7 +3,7 @@
 import { CopilotSidebar } from "@copilotkit/react-ui";
 import { useRenderToolCall, useCopilotChat, useCoAgent } from "@copilotkit/react-core";
 import { Role, TextMessage } from "@copilotkit/runtime-client-gql";
-import { VoiceInput } from "@/components/voice-input";
+import { VoiceWidget } from "@/components/VoiceWidget";
 import { ArticleGrid } from "@/components/generative-ui/ArticleGrid";
 import { ArticleCard } from "@/components/generative-ui/ArticleCard";
 import { LocationMap } from "@/components/generative-ui/LocationMap";
@@ -269,8 +269,62 @@ export default function Home() {
     facts?: string[];
   }>({});
 
-  // Dynamic background based on current topic
+  // Dynamic background based on current topic or revolving hero images
   const [topicBackground, setTopicBackground] = useState<string | null>(null);
+  const [heroImages, setHeroImages] = useState<string[]>([]);
+  const [currentHeroIndex, setCurrentHeroIndex] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+
+  // Fetch hero images for revolving background
+  useEffect(() => {
+    async function fetchHeroImages() {
+      try {
+        const res = await fetch('/api/unsplash?type=hero');
+        if (res.ok) {
+          const data = await res.json();
+          setHeroImages(data.images || []);
+        }
+      } catch (e) {
+        console.error('[Background] Failed to fetch hero images:', e);
+      }
+    }
+    fetchHeroImages();
+  }, []);
+
+  // Revolving background effect (only when no specific destination is set)
+  useEffect(() => {
+    if (topicBackground || heroImages.length === 0) return;
+
+    const interval = setInterval(() => {
+      setIsTransitioning(true);
+      setTimeout(() => {
+        setCurrentHeroIndex(prev => (prev + 1) % heroImages.length);
+        setIsTransitioning(false);
+      }, 500); // Half-second fade
+    }, 8000); // Change every 8 seconds
+
+    return () => clearInterval(interval);
+  }, [topicBackground, heroImages.length]);
+
+  // Handler for when a destination is mentioned in voice chat
+  const handleDestinationMentioned = useCallback(async (destination: string) => {
+    console.log('[Background] Destination mentioned:', destination);
+    try {
+      const res = await fetch(`/api/unsplash?query=${encodeURIComponent(destination)}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.url) {
+          setIsTransitioning(true);
+          setTimeout(() => {
+            setTopicBackground(data.url);
+            setIsTransitioning(false);
+          }, 300);
+        }
+      }
+    } catch (e) {
+      console.error('[Background] Failed to fetch destination image:', e);
+    }
+  }, []);
 
   // Fetch user profile and Zep context on mount
   useEffect(() => {
@@ -633,41 +687,35 @@ ${userProfile.isReturningUser ? 'This is a RETURNING user - greet them warmly.' 
       >
       {/* Main Content - Voice-First Hero */}
       <div className="bg-white text-black min-h-screen">
-        {/* Hero Section - Full Screen */}
-        <section className="relative min-h-screen flex items-center justify-center bg-[#1a1612]">
-          {/* Background - Dynamic or default map */}
+        {/* Hero Section - Full Screen with Revolving Background */}
+        <section className="relative min-h-screen flex items-center justify-center bg-[#1a1612] overflow-hidden">
+          {/* Background - Revolving or destination-specific */}
           <div className="absolute inset-0 z-0">
             <img
-              src={topicBackground || "/world-destinations.jpg"}
+              src={topicBackground || heroImages[currentHeroIndex] || "/world-destinations.jpg"}
               alt=""
-              className="w-full h-full object-cover transition-all duration-1000"
-              style={{ opacity: topicBackground ? 0.5 : 0.4, filter: 'sepia(30%) contrast(1.1)' }}
+              className={`w-full h-full object-cover transition-all duration-1000 ${isTransitioning ? 'opacity-0' : 'opacity-50'}`}
+              style={{ filter: 'brightness(0.7) contrast(1.1)' }}
             />
-            <div className="absolute inset-0 bg-gradient-to-b from-[#1a1612]/70 via-[#1a1612]/40 to-[#1a1612]/90" />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/70" />
           </div>
 
           <div className="relative z-10 max-w-4xl mx-auto px-4 py-16 text-center">
-            <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-4 text-[#f4ead5]">
+            <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-4 text-white drop-shadow-lg">
               Relocation Quest
             </h1>
-            <p className="text-xl md:text-2xl text-[#d4c4a8] mb-10 max-w-2xl mx-auto">
+            <p className="text-xl md:text-2xl text-white/90 mb-12 max-w-2xl mx-auto drop-shadow">
               Your AI guide to moving abroad
             </p>
 
-            {/* ATLAS Avatar + Voice - Avatar IS the clickable voice trigger */}
-            <div className="flex flex-col items-center mb-8">
-              <VoiceInput
-                onMessage={handleVoiceMessage}
-                userId={user?.id}
-                userName={userProfile.preferred_name || user?.name?.split(' ')[0] || user?.name}
-                isReturningUser={userProfile.isReturningUser}
-                userFacts={userProfile.facts}
-              />
-            </div>
+            {/* Call to action */}
+            <p className="text-white/70 text-lg mb-6">
+              Tap the microphone to speak with ATLAS
+            </p>
 
-            {/* Topic Pills - White text */}
+            {/* Topic Pills */}
             <div className="w-full max-w-lg mx-auto">
-              <p className="text-white/70 text-sm mb-3">Quick topics:</p>
+              <p className="text-white/60 text-sm mb-3">Or explore:</p>
               <div className="flex flex-wrap justify-center gap-3">
                 {['Portugal', 'Cyprus', 'Dubai', 'Digital Nomad Visa', 'Cost of Living'].map((topic) => (
                   <TopicButton key={topic} topic={topic} onClick={handleTopicClick} />
@@ -675,6 +723,16 @@ ${userProfile.isReturningUser ? 'This is a RETURNING user - greet them warmly.' 
               </div>
             </div>
           </div>
+
+          {/* Floating Voice Widget */}
+          <VoiceWidget
+            onMessage={handleVoiceMessage}
+            onDestinationMentioned={handleDestinationMentioned}
+            userId={user?.id}
+            userName={userProfile.preferred_name || user?.name?.split(' ')[0] || user?.name}
+            isReturningUser={userProfile.isReturningUser}
+            userFacts={userProfile.facts}
+          />
         </section>
 
         {/* Stats */}
