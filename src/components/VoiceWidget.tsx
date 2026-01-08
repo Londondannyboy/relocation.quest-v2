@@ -10,6 +10,8 @@ interface VoiceWidgetButtonProps {
   userName?: string;
   isReturningUser?: boolean;
   userFacts?: string[];
+  size?: 'small' | 'large';
+  centered?: boolean;
 }
 
 // Destinations to detect in conversation
@@ -40,6 +42,8 @@ function VoiceWidgetButton({
   userName,
   isReturningUser,
   userFacts,
+  size = 'small',
+  centered = false,
 }: VoiceWidgetButtonProps) {
   const { connect, disconnect, status, messages, sendUserInput } = useVoice();
   const [isPending, setIsPending] = useState(false);
@@ -158,63 +162,104 @@ RULES:
 
   const isConnected = status.value === "connected";
 
+  // Size classes based on prop
+  const sizeClasses = size === 'large'
+    ? 'w-28 h-28 md:w-36 md:h-36'
+    : 'w-16 h-16';
+
+  const iconSize = size === 'large' ? 'w-12 h-12 md:w-14 md:h-14' : 'w-7 h-7';
+  const spinnerSize = size === 'large' ? 'w-10 h-10' : 'w-6 h-6';
+
+  // Position classes - fixed bottom-right OR inline
+  const positionClasses = centered
+    ? '' // No fixed positioning when centered
+    : 'fixed bottom-6 right-6 z-50';
+
   return (
-    <button
-      onClick={handleToggle}
-      disabled={isPending}
-      className={`
-        fixed bottom-6 right-6 z-50
-        w-16 h-16 rounded-full
-        flex items-center justify-center
-        transition-all duration-300 ease-out
-        shadow-2xl
-        ${isConnected
-          ? isPlaying
-            ? 'bg-amber-500 scale-110 shadow-amber-500/50'
-            : 'bg-green-500 shadow-green-500/50'
-          : isPending
-            ? 'bg-gray-400 cursor-not-allowed'
-            : 'bg-white hover:bg-amber-50 hover:scale-110 shadow-black/20 hover:shadow-amber-500/30'
-        }
-      `}
-      title={isConnected ? (isPlaying ? "ATLAS is speaking..." : "Listening...") : "Talk to ATLAS"}
-    >
-      {isPending ? (
-        <div className="w-6 h-6 border-3 border-white border-t-transparent rounded-full animate-spin" />
-      ) : isConnected ? (
-        isPlaying ? (
-          // Speaking animation - sound waves
-          <div className="flex items-center gap-0.5">
-            {[...Array(4)].map((_, i) => (
-              <div
-                key={i}
-                className="w-1 bg-white rounded-full animate-pulse"
-                style={{
-                  height: `${12 + (i % 2) * 8}px`,
-                  animationDelay: `${i * 0.1}s`,
-                  animationDuration: '0.4s'
-                }}
-              />
-            ))}
-          </div>
+    <div className={`flex flex-col items-center gap-4 ${centered ? '' : ''}`}>
+      <button
+        onClick={handleToggle}
+        disabled={isPending}
+        className={`
+          ${positionClasses}
+          ${sizeClasses}
+          rounded-full
+          flex items-center justify-center
+          transition-all duration-300 ease-out
+          ${size === 'large' ? 'shadow-[0_0_60px_rgba(251,191,36,0.3)]' : 'shadow-2xl'}
+          ${isConnected
+            ? isPlaying
+              ? 'bg-amber-500 scale-110 shadow-amber-500/50'
+              : 'bg-green-500 shadow-green-500/50'
+            : isPending
+              ? 'bg-gray-400 cursor-not-allowed'
+              : size === 'large'
+                ? 'bg-white/90 hover:bg-white hover:scale-105 border-4 border-white/50 hover:border-amber-300'
+                : 'bg-white hover:bg-amber-50 hover:scale-110 shadow-black/20 hover:shadow-amber-500/30'
+          }
+          ${size === 'large' && !isConnected && !isPending ? 'animate-pulse' : ''}
+        `}
+        title={isConnected ? (isPlaying ? "ATLAS is speaking..." : "Listening...") : "Tap to talk to ATLAS"}
+      >
+        {isPending ? (
+          <div className={`${spinnerSize} border-4 border-amber-500 border-t-transparent rounded-full animate-spin`} />
+        ) : isConnected ? (
+          isPlaying ? (
+            // Speaking animation - sound waves
+            <div className="flex items-center gap-1">
+              {[...Array(5)].map((_, i) => (
+                <div
+                  key={i}
+                  className={`${size === 'large' ? 'w-2' : 'w-1'} bg-white rounded-full animate-pulse`}
+                  style={{
+                    height: size === 'large' ? `${24 + (i % 2) * 16}px` : `${12 + (i % 2) * 8}px`,
+                    animationDelay: `${i * 0.1}s`,
+                    animationDuration: '0.4s'
+                  }}
+                />
+              ))}
+            </div>
+          ) : (
+            // Listening animation - pulsing mic
+            <div className="relative">
+              <svg className={`${iconSize} text-white`} fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.91-3c-.49 0-.9.36-.98.85C16.52 14.2 14.47 16 12 16s-4.52-1.8-4.93-4.15c-.08-.49-.49-.85-.98-.85-.61 0-1.09.54-1 1.14.49 3 2.89 5.35 5.91 5.78V20c0 .55.45 1 1 1s1-.45 1-1v-2.08c3.02-.43 5.42-2.78 5.91-5.78.1-.6-.39-1.14-1-1.14z"/>
+              </svg>
+              <div className="absolute inset-0 rounded-full bg-white/30 animate-ping" />
+            </div>
+          )
         ) : (
-          // Listening animation - pulsing mic
-          <div className="relative">
-            <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.91-3c-.49 0-.9.36-.98.85C16.52 14.2 14.47 16 12 16s-4.52-1.8-4.93-4.15c-.08-.49-.49-.85-.98-.85-.61 0-1.09.54-1 1.14.49 3 2.89 5.35 5.91 5.78V20c0 .55.45 1 1 1s1-.45 1-1v-2.08c3.02-.43 5.42-2.78 5.91-5.78.1-.6-.39-1.14-1-1.14z"/>
-            </svg>
-            <div className="absolute inset-0 rounded-full bg-white/30 animate-ping" />
-          </div>
-        )
-      ) : (
-        // Idle mic icon
-        <svg className="w-7 h-7 text-stone-700" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.91-3c-.49 0-.9.36-.98.85C16.52 14.2 14.47 16 12 16s-4.52-1.8-4.93-4.15c-.08-.49-.49-.85-.98-.85-.61 0-1.09.54-1 1.14.49 3 2.89 5.35 5.91 5.78V20c0 .55.45 1 1 1s1-.45 1-1v-2.08c3.02-.43 5.42-2.78 5.91-5.78.1-.6-.39-1.14-1-1.14z"/>
-        </svg>
+          // Idle mic icon
+          <svg className={`${iconSize} text-stone-700`} fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.91-3c-.49 0-.9.36-.98.85C16.52 14.2 14.47 16 12 16s-4.52-1.8-4.93-4.15c-.08-.49-.49-.85-.98-.85-.61 0-1.09.54-1 1.14.49 3 2.89 5.35 5.91 5.78V20c0 .55.45 1 1 1s1-.45 1-1v-2.08c3.02-.43 5.42-2.78 5.91-5.78.1-.6-.39-1.14-1-1.14z"/>
+          </svg>
+        )}
+      </button>
+
+      {/* Status/instruction label - only when centered */}
+      {centered && (
+        <span className={`
+          text-lg font-medium
+          ${isConnected
+            ? isPlaying
+              ? 'text-amber-400'
+              : 'text-green-400'
+            : 'text-white/80'
+          }
+        `}>
+          {isPending
+            ? "Connecting..."
+            : isConnected
+              ? isPlaying
+                ? "ATLAS is speaking..."
+                : "Listening..."
+              : "Tap to talk to ATLAS"
+          }
+        </span>
       )}
 
-      {/* Status label */}
-      {isConnected && (
+      {/* Floating status label - only when NOT centered */}
+      {!centered && isConnected && (
         <span className={`
           absolute -top-8 left-1/2 -translate-x-1/2
           px-2 py-1 rounded text-xs font-medium whitespace-nowrap
@@ -223,7 +268,7 @@ RULES:
           {isPlaying ? 'Speaking...' : 'Listening...'}
         </span>
       )}
-    </button>
+    </div>
   );
 }
 
@@ -234,6 +279,8 @@ export function VoiceWidget({
   userName,
   isReturningUser,
   userFacts,
+  size = 'small',
+  centered = false,
 }: {
   onMessage: (text: string, role?: "user" | "assistant") => void;
   onDestinationMentioned?: (destination: string) => void;
@@ -241,6 +288,8 @@ export function VoiceWidget({
   userName?: string;
   isReturningUser?: boolean;
   userFacts?: string[];
+  size?: 'small' | 'large';
+  centered?: boolean;
 }) {
   return (
     <VoiceProvider
@@ -255,6 +304,8 @@ export function VoiceWidget({
         userName={userName}
         isReturningUser={isReturningUser}
         userFacts={userFacts}
+        size={size}
+        centered={centered}
       />
     </VoiceProvider>
   );

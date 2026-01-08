@@ -415,14 +415,18 @@ export default function Home() {
   }, [appendMessage, user?.id, userProfile.preferred_name]);
 
   const handleTopicClick = useCallback((topic: string) => {
+    // 1. Immediately change background (don't wait for agent)
+    handleDestinationMentioned(topic);
+
+    // 2. Send to CopilotKit for agent processing
     const message = `Tell me about ${topic}`;
     appendMessage(new TextMessage({ content: message, role: Role.User }));
 
-    // Store topic as structured entity to Zep (not just raw message)
+    // 3. Store topic as structured entity to Zep
     if (user?.id) {
       storeTopicToZep(user.id, topic, userProfile.preferred_name);
     }
-  }, [appendMessage, user?.id, userProfile.preferred_name]);
+  }, [appendMessage, handleDestinationMentioned, user?.id, userProfile.preferred_name]);
 
   // =============================================================================
   // GENERATIVE UI: Render tool results from Pydantic AI agent
@@ -674,7 +678,7 @@ ${userProfile.isReturningUser ? 'This is a RETURNING user - greet them warmly.' 
     <BackgroundContext.Provider value={backgroundContextValue}>
     <ChatUserContext.Provider value={chatUserContextValue}>
       <CopilotSidebar
-        defaultOpen={true}
+        defaultOpen={false}
         clickOutsideToClose={false}
         instructions={instructions}
         labels={{
@@ -701,21 +705,30 @@ ${userProfile.isReturningUser ? 'This is a RETURNING user - greet them warmly.' 
           </div>
 
           <div className="relative z-10 max-w-4xl mx-auto px-4 py-16 text-center">
-            <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-4 text-white drop-shadow-lg">
+            <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6 text-white drop-shadow-lg">
               Relocation Quest
             </h1>
-            <p className="text-xl md:text-2xl text-white/90 mb-12 max-w-2xl mx-auto drop-shadow">
+            <p className="text-xl md:text-2xl text-white/90 mb-10 max-w-2xl mx-auto drop-shadow">
               Your AI guide to moving abroad
             </p>
 
-            {/* Call to action */}
-            <p className="text-white/70 text-lg mb-6">
-              Tap the microphone to speak with ATLAS
-            </p>
+            {/* Centered Voice Widget - Main CTA */}
+            <div className="mb-10">
+              <VoiceWidget
+                onMessage={handleVoiceMessage}
+                onDestinationMentioned={handleDestinationMentioned}
+                userId={user?.id}
+                userName={userProfile.preferred_name || user?.name?.split(' ')[0] || user?.name}
+                isReturningUser={userProfile.isReturningUser}
+                userFacts={userProfile.facts}
+                size="large"
+                centered={true}
+              />
+            </div>
 
             {/* Topic Pills */}
             <div className="w-full max-w-lg mx-auto">
-              <p className="text-white/60 text-sm mb-3">Or explore:</p>
+              <p className="text-white/60 text-sm mb-3">Or explore destinations:</p>
               <div className="flex flex-wrap justify-center gap-3">
                 {['Portugal', 'Cyprus', 'Dubai', 'Digital Nomad Visa', 'Cost of Living'].map((topic) => (
                   <TopicButton key={topic} topic={topic} onClick={handleTopicClick} />
@@ -723,16 +736,6 @@ ${userProfile.isReturningUser ? 'This is a RETURNING user - greet them warmly.' 
               </div>
             </div>
           </div>
-
-          {/* Floating Voice Widget */}
-          <VoiceWidget
-            onMessage={handleVoiceMessage}
-            onDestinationMentioned={handleDestinationMentioned}
-            userId={user?.id}
-            userName={userProfile.preferred_name || user?.name?.split(' ')[0] || user?.name}
-            isReturningUser={userProfile.isReturningUser}
-            userFacts={userProfile.facts}
-          />
         </section>
 
         {/* Stats */}
