@@ -727,10 +727,15 @@ ${userProfile.isReturningUser ? 'This is a RETURNING user - greet them warmly.' 
             </div>
 
             {/* Topic Pills */}
-            <div className="w-full max-w-lg mx-auto">
+            <div className="w-full max-w-xl mx-auto">
               <p className="text-white/60 text-sm mb-3">Or explore destinations:</p>
               <div className="flex flex-wrap justify-center gap-3">
-                {['Portugal', 'Cyprus', 'Dubai', 'Digital Nomad Visa', 'Cost of Living'].map((topic) => (
+                {['Portugal', 'Spain', 'Cyprus', 'Dubai', 'Canada', 'Australia'].map((topic) => (
+                  <TopicButton key={topic} topic={topic} onClick={handleTopicClick} />
+                ))}
+              </div>
+              <div className="flex flex-wrap justify-center gap-2 mt-3">
+                {['Digital Nomad Visa', 'Cost of Living', 'Remote Work'].map((topic) => (
                   <TopicButton key={topic} topic={topic} onClick={handleTopicClick} />
                 ))}
               </div>
@@ -743,25 +748,51 @@ ${userProfile.isReturningUser ? 'This is a RETURNING user - greet them warmly.' 
           <div className="max-w-4xl mx-auto px-4 py-6">
             <div className="grid grid-cols-3 gap-4 text-center">
               <div>
-                <p className="text-2xl font-bold">50+</p>
-                <p className="text-xs text-gray-500">Destinations</p>
+                <p className="text-2xl font-bold">200+</p>
+                <p className="text-xs text-gray-500">Articles</p>
               </div>
               <div>
-                <p className="text-2xl font-bold">30+</p>
-                <p className="text-xs text-gray-500">Visa Types</p>
+                <p className="text-2xl font-bold">38</p>
+                <p className="text-xs text-gray-500">Country Guides</p>
               </div>
               <div>
-                <p className="text-2xl font-bold">100+</p>
-                <p className="text-xs text-gray-500">Guides</p>
+                <p className="text-2xl font-bold">6</p>
+                <p className="text-xs text-gray-500">Detailed Destinations</p>
               </div>
             </div>
           </div>
         </section>
 
+        {/* Featured Destinations */}
+        <section className="py-12 bg-white">
+          <div className="max-w-5xl mx-auto px-4">
+            <h2 className="text-2xl font-serif font-bold text-center mb-8">Featured Destinations</h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+              {[
+                { slug: 'portugal', name: 'Portugal', flag: '🇵🇹' },
+                { slug: 'spain', name: 'Spain', flag: '🇪🇸' },
+                { slug: 'cyprus', name: 'Cyprus', flag: '🇨🇾' },
+                { slug: 'dubai', name: 'Dubai', flag: '🇦🇪' },
+                { slug: 'canada', name: 'Canada', flag: '🇨🇦' },
+                { slug: 'australia', name: 'Australia', flag: '🇦🇺' },
+              ].map((dest) => (
+                <a
+                  key={dest.slug}
+                  href={`/destinations/${dest.slug}`}
+                  className="group p-4 rounded-xl border border-gray-200 hover:border-amber-300 hover:shadow-lg transition-all text-center"
+                >
+                  <span className="text-3xl mb-2 block">{dest.flag}</span>
+                  <span className="font-medium text-gray-900 group-hover:text-amber-700">{dest.name}</span>
+                </a>
+              ))}
+            </div>
+          </div>
+        </section>
+
         {/* About */}
-        <section className="py-12">
+        <section className="py-8 bg-stone-50">
           <div className="max-w-2xl mx-auto px-4 text-center">
-            <p className="text-gray-600 text-sm">
+            <p className="text-gray-500 text-sm">
               Powered by CopilotKit, Hume, and Neon
             </p>
           </div>
