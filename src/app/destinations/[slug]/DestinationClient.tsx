@@ -1,8 +1,213 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+
+interface GalleryImage {
+  url: string;
+  thumbnail: string;
+  alt: string;
+  photographer?: string;
+  photographerUrl?: string;
+}
+
+interface SimilarDestination {
+  slug: string;
+  country_name: string;
+  flag: string;
+  region: string;
+  hero_image_url?: string;
+  hero_subtitle?: string;
+}
+
+function SimilarDestinations({ currentSlug, currentRegion }: { currentSlug: string; currentRegion: string }) {
+  const [destinations, setDestinations] = useState<SimilarDestination[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchSimilar() {
+      try {
+        const res = await fetch('/api/destinations?limit=20');
+        if (res.ok) {
+          const data = await res.json();
+          const all = data.destinations || [];
+          // Filter out current and prioritize same region
+          const others = all.filter((d: SimilarDestination) => d.slug !== currentSlug);
+          const sameRegion = others.filter((d: SimilarDestination) => d.region === currentRegion);
+          const differentRegion = others.filter((d: SimilarDestination) => d.region !== currentRegion);
+          // Take up to 4: prioritize same region
+          const similar = [...sameRegion, ...differentRegion].slice(0, 4);
+          setDestinations(similar);
+        }
+      } catch (err) {
+        console.error('Failed to fetch similar destinations:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchSimilar();
+  }, [currentSlug, currentRegion]);
+
+  if (loading) {
+    return (
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="h-40 bg-gray-200 rounded-xl animate-pulse" />
+        ))}
+      </div>
+    );
+  }
+
+  if (destinations.length === 0) return null;
+
+  return (
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {destinations.map((dest) => (
+        <Link
+          key={dest.slug}
+          href={`/destinations/${dest.slug}`}
+          className="relative rounded-xl overflow-hidden group h-40 shadow-md hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
+        >
+          <div className="absolute inset-0">
+            {dest.hero_image_url ? (
+              <img src={dest.hero_image_url} alt={dest.country_name} className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-amber-600 to-stone-800" />
+            )}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+          </div>
+          <div className="absolute inset-0 p-4 flex flex-col justify-end">
+            <div className="flex items-center gap-2">
+              <span className="text-2xl">{dest.flag}</span>
+              <div>
+                <h3 className="font-bold text-white text-sm">{dest.country_name}</h3>
+                <p className="text-white/70 text-xs">{dest.region}</p>
+              </div>
+            </div>
+          </div>
+        </Link>
+      ))}
+    </div>
+  );
+}
+
+function ImageGallery({ countryName }: { countryName: string }) {
+  const [images, setImages] = useState<GalleryImage[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null);
+
+  useEffect(() => {
+    async function fetchGallery() {
+      try {
+        const res = await fetch(`/api/unsplash?type=gallery&query=${encodeURIComponent(countryName)}&count=6`);
+        if (res.ok) {
+          const data = await res.json();
+          setImages(data.images || []);
+        }
+      } catch (err) {
+        console.error('Failed to fetch gallery:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchGallery();
+  }, [countryName]);
+
+  const closeLightbox = useCallback(() => setSelectedImage(null), []);
+
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') closeLightbox();
+    };
+    if (selectedImage) {
+      window.addEventListener('keydown', handleEsc);
+      return () => window.removeEventListener('keydown', handleEsc);
+    }
+  }, [selectedImage, closeLightbox]);
+
+  if (loading) {
+    return (
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+        {[1, 2, 3, 4, 5, 6].map((i) => (
+          <div key={i} className="aspect-[4/3] bg-gray-200 rounded-xl animate-pulse" />
+        ))}
+      </div>
+    );
+  }
+
+  if (images.length === 0) return null;
+
+  return (
+    <>
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+        {images.map((image, index) => (
+          <button
+            key={index}
+            onClick={() => setSelectedImage(image)}
+            className="relative aspect-[4/3] rounded-xl overflow-hidden group cursor-pointer focus:outline-none focus:ring-2 focus:ring-stone-500"
+          >
+            <img
+              src={image.thumbnail}
+              alt={image.alt}
+              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+            />
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
+            <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+              {image.photographer && (
+                <p className="text-white text-xs truncate">Photo by {image.photographer}</p>
+              )}
+            </div>
+          </button>
+        ))}
+      </div>
+
+      {/* Lightbox */}
+      {selectedImage && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
+          onClick={closeLightbox}
+        >
+          <button
+            onClick={closeLightbox}
+            className="absolute top-4 right-4 text-white/80 hover:text-white p-2"
+          >
+            <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+          <div onClick={(e) => e.stopPropagation()} className="max-w-5xl max-h-[85vh] relative">
+            <img
+              src={selectedImage.url}
+              alt={selectedImage.alt}
+              className="max-w-full max-h-[85vh] object-contain rounded-lg"
+            />
+            {selectedImage.photographer && (
+              <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent rounded-b-lg">
+                <p className="text-white text-sm">
+                  Photo by{' '}
+                  {selectedImage.photographerUrl ? (
+                    <a
+                      href={selectedImage.photographerUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline hover:text-gray-300"
+                    >
+                      {selectedImage.photographer}
+                    </a>
+                  ) : (
+                    selectedImage.photographer
+                  )}{' '}
+                  on Unsplash
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
 
 interface QuickFact {
   icon: string;
@@ -253,6 +458,12 @@ export default function DestinationClient({ slug }: { slug: string }) {
         {/* Overview Tab */}
         {activeTab === 'overview' && (
           <div className="space-y-8">
+            {/* Image Gallery */}
+            <section>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">Discover {destination.country_name}</h2>
+              <ImageGallery countryName={destination.country_name} />
+            </section>
+
             <section>
               <h2 className="text-2xl font-bold text-gray-900 mb-6">Why {destination.country_name}?</h2>
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -426,6 +637,12 @@ export default function DestinationClient({ slug }: { slug: string }) {
             )}
           </div>
         )}
+      </div>
+
+      {/* Similar Destinations */}
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        <h2 className="text-2xl font-bold text-gray-900 mb-6">Explore More Destinations</h2>
+        <SimilarDestinations currentSlug={slug} currentRegion={destination.region} />
       </div>
 
       {/* Ask ATLAS CTA */}

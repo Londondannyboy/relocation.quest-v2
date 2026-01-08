@@ -31,16 +31,90 @@ const HERO_IMAGES = [
   'https://images.unsplash.com/photo-1593640495390-37436a055891?w=1920&q=80', // Cyprus
 ];
 
+// Gallery cache for multiple images
+const galleryCache = new Map<string, { images: GalleryImage[]; timestamp: number }>();
+
+interface GalleryImage {
+  url: string;
+  thumbnail: string;
+  alt: string;
+  photographer?: string;
+  photographerUrl?: string;
+}
+
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const query = searchParams.get('query');
-  const type = searchParams.get('type'); // 'destination' or 'hero'
+  const type = searchParams.get('type'); // 'destination', 'hero', or 'gallery'
+  const count = parseInt(searchParams.get('count') || '1', 10);
 
   // Return revolving hero images
   if (type === 'hero') {
     return NextResponse.json({
       images: HERO_IMAGES,
       interval: 8000 // 8 seconds between images
+    });
+  }
+
+  // Return gallery images (multiple)
+  if (type === 'gallery' && query) {
+    const queryLower = query.toLowerCase().trim();
+    const cacheKey = `gallery_${queryLower}_${count}`;
+
+    // Check gallery cache
+    const cached = galleryCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+      return NextResponse.json({
+        images: cached.images,
+        source: 'cache',
+        query: queryLower
+      });
+    }
+
+    // Fetch multiple images from Unsplash
+    if (UNSPLASH_ACCESS_KEY) {
+      try {
+        const searchQuery = `${query} travel destination`;
+        const response = await fetch(
+          `https://api.unsplash.com/search/photos?query=${encodeURIComponent(searchQuery)}&orientation=landscape&per_page=${Math.min(count, 10)}`,
+          {
+            headers: {
+              'Authorization': `Client-ID ${UNSPLASH_ACCESS_KEY}`,
+            },
+          }
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.results && data.results.length > 0) {
+            const images: GalleryImage[] = data.results.map((photo: { urls: { raw: string }; alt_description?: string; user?: { name?: string; links?: { html?: string } } }) => ({
+              url: `${photo.urls.raw}&w=1200&q=80&fit=crop`,
+              thumbnail: `${photo.urls.raw}&w=400&q=80&fit=crop`,
+              alt: photo.alt_description || `${query} travel photo`,
+              photographer: photo.user?.name,
+              photographerUrl: photo.user?.links?.html
+            }));
+
+            // Cache the results
+            galleryCache.set(cacheKey, { images, timestamp: Date.now() });
+
+            return NextResponse.json({
+              images,
+              source: 'unsplash',
+              query: queryLower
+            });
+          }
+        }
+      } catch (error) {
+        console.error('[Unsplash] Gallery API error:', error);
+      }
+    }
+
+    // Fallback - return empty gallery
+    return NextResponse.json({
+      images: [],
+      source: 'fallback',
+      query: queryLower
     });
   }
 
