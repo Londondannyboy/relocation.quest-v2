@@ -61,7 +61,7 @@ export function Header() {
                 Guides
               </Link>
               <Link
-                href="/destinations/portugal"
+                href="/destinations"
                 className={`hidden sm:block px-2 md:px-3 py-2 text-xs md:text-sm transition-colors ${
                   pathname?.startsWith('/destinations')
                     ? 'text-white bg-white/10'
@@ -155,7 +155,7 @@ export function Header() {
               Browse Guides
             </Link>
             <Link
-              href="/destinations/portugal"
+              href="/destinations"
               className={`block px-4 py-2 ${pathname?.startsWith('/destinations') ? 'text-white bg-white/10' : 'text-gray-300'}`}
               onClick={() => setMenuOpen(false)}
             >

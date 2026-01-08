@@ -226,6 +226,69 @@ async def get_user_preferred_name(user_id: str) -> Optional[str]:
         return None
 
 
+async def get_destination_by_slug(slug: str) -> Optional[dict]:
+    """
+    Get full destination data including JSONB fields.
+
+    Returns visas, cost_of_living, job_market, faqs, etc.
+    """
+    try:
+        async with get_connection() as conn:
+            result = await conn.fetchrow("""
+                SELECT
+                    slug, country_name, flag, region, language,
+                    hero_title, hero_subtitle, hero_image_url,
+                    quick_facts, highlights, visas, cost_of_living,
+                    job_market, faqs
+                FROM destinations
+                WHERE slug = $1 AND enabled = true
+            """, slug.lower())
+
+            if result:
+                # Convert to dict and parse JSONB fields
+                data = dict(result)
+                print(f"[ATLAS DB] Found destination: {data['country_name']}", file=sys.stderr)
+                return data
+
+            print(f"[ATLAS DB] Destination not found: {slug}", file=sys.stderr)
+            return None
+    except Exception as e:
+        print(f"[ATLAS DB] Error looking up destination: {e}", file=sys.stderr)
+        return None
+
+
+async def search_destinations(query: str) -> list[dict]:
+    """
+    Search destinations by country name or keywords.
+
+    Returns matching destinations with their structured data.
+    """
+    try:
+        async with get_connection() as conn:
+            query_lower = f"%{query.lower()}%"
+            results = await conn.fetch("""
+                SELECT
+                    slug, country_name, flag, region, language,
+                    hero_subtitle, hero_image_url,
+                    quick_facts, visas, cost_of_living
+                FROM destinations
+                WHERE enabled = true
+                AND (
+                    LOWER(country_name) LIKE $1
+                    OR LOWER(region) LIKE $1
+                    OR LOWER(hero_subtitle) LIKE $1
+                )
+                ORDER BY priority DESC
+                LIMIT 5
+            """, query_lower)
+
+            print(f"[ATLAS DB] Found {len(results)} destinations for '{query}'", file=sys.stderr)
+            return [dict(r) for r in results]
+    except Exception as e:
+        print(f"[ATLAS DB] Error searching destinations: {e}", file=sys.stderr)
+        return []
+
+
 async def get_topic_image(query: str) -> Optional[str]:
     """
     Look up a topic image using the topic_images table.
