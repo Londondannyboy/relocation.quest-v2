@@ -698,8 +698,8 @@ ${userProfile.isReturningUser ? 'This is a RETURNING user - greet them warmly.' 
             <img
               src={topicBackground || heroImages[currentHeroIndex] || "/world-destinations.jpg"}
               alt=""
-              className={`w-full h-full object-cover transition-all duration-1000 ${isTransitioning ? 'opacity-0' : 'opacity-50'}`}
-              style={{ filter: 'brightness(0.7) contrast(1.1)' }}
+              className={`w-full h-full object-cover transition-all duration-1000 ${isTransitioning ? 'opacity-0' : 'opacity-70'}`}
+              style={{ filter: 'brightness(0.85) contrast(1.05)' }}
             />
             <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/70" />
           </div>

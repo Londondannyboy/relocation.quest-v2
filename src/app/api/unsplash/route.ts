@@ -9,7 +9,7 @@ const CACHE_TTL = 1000 * 60 * 60; // 1 hour
 // Default destination images for fallback
 const DEFAULT_IMAGES: Record<string, string> = {
   'portugal': 'https://images.unsplash.com/photo-1555881400-74d7acaacd8b?w=1920&q=80', // Lisbon
-  'cyprus': 'https://images.unsplash.com/photo-1580215194082-43a9e991a18b?w=1920&q=80', // Mediterranean
+  'cyprus': 'https://images.unsplash.com/photo-1593640495390-37436a055891?w=1920&q=80', // Cyprus coast bright
   'dubai': 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=1920&q=80', // Burj Khalifa
   'spain': 'https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=1920&q=80', // Barcelona
   'malta': 'https://images.unsplash.com/photo-1514890547357-a9ee288728e0?w=1920&q=80', // Valletta
@@ -28,7 +28,7 @@ const HERO_IMAGES = [
   'https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=1920&q=80', // Barcelona
   'https://images.unsplash.com/photo-1528181304800-259b08848526?w=1920&q=80', // Bangkok
   'https://images.unsplash.com/photo-1523482580672-f109ba8cb9be?w=1920&q=80', // Sydney
-  'https://images.unsplash.com/photo-1580215194082-43a9e991a18b?w=1920&q=80', // Cyprus
+  'https://images.unsplash.com/photo-1593640495390-37436a055891?w=1920&q=80', // Cyprus
 ];
 
 export async function GET(request: NextRequest) {
