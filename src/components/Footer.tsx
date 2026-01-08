@@ -46,7 +46,8 @@ export function Footer() {
             <h4 className="font-semibold mb-3">Company</h4>
             <nav className="flex flex-col gap-2 text-sm text-gray-400">
               <Link href="/contact" className="hover:text-white transition-colors">Contact</Link>
-              <Link href="/profile" className="hover:text-white transition-colors">My Profile</Link>
+              <Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
+              <Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
             </nav>
           </div>
         </div>

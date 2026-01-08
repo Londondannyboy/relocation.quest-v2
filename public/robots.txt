@@ -1,0 +1,21 @@
+# Relocation Quest - robots.txt
+# https://relocation-quest-v2.vercel.app
+
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://relocation-quest-v2.vercel.app/sitemap.xml
+
+# Allow all crawlers
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+# Disallow auth and API routes
+Disallow: /api/
+Disallow: /auth/
+Disallow: /profile
+Disallow: /dashboard
