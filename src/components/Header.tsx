@@ -51,9 +51,9 @@ export function Header() {
                 </Link>
               )}
               <Link
-                href="/articles"
+                href="/guides"
                 className={`hidden sm:block px-2 md:px-3 py-2 text-xs md:text-sm transition-colors ${
-                  pathname === '/articles'
+                  pathname === '/guides' || pathname === '/articles'
                     ? 'text-white bg-white/10'
                     : 'text-gray-300 hover:text-white hover:bg-white/5'
                 }`}
@@ -69,6 +69,16 @@ export function Header() {
                 }`}
               >
                 Destinations
+              </Link>
+              <Link
+                href="/contact"
+                className={`hidden md:block px-2 md:px-3 py-2 text-xs md:text-sm transition-colors ${
+                  pathname === '/contact'
+                    ? 'text-white bg-white/10'
+                    : 'text-gray-300 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                Contact
               </Link>
             </nav>
 
@@ -148,11 +158,11 @@ export function Header() {
               </Link>
             )}
             <Link
-              href="/articles"
-              className={`block px-4 py-2 ${pathname === '/articles' ? 'text-white bg-white/10' : 'text-gray-300'}`}
+              href="/guides"
+              className={`block px-4 py-2 ${pathname === '/guides' || pathname === '/articles' ? 'text-white bg-white/10' : 'text-gray-300'}`}
               onClick={() => setMenuOpen(false)}
             >
-              Browse Guides
+              Guides
             </Link>
             <Link
               href="/destinations"
@@ -160,6 +170,13 @@ export function Header() {
               onClick={() => setMenuOpen(false)}
             >
               Destinations
+            </Link>
+            <Link
+              href="/contact"
+              className={`block px-4 py-2 ${pathname === '/contact' ? 'text-white bg-white/10' : 'text-gray-300'}`}
+              onClick={() => setMenuOpen(false)}
+            >
+              Contact
             </Link>
             <Link
               href="/profile"
