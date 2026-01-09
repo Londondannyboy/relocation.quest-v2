@@ -15,6 +15,7 @@ import { DestinationCard, DestinationCardCompact } from "@/components/generative
 import { CostOfLivingChart } from "@/components/generative-ui/CostOfLivingChart";
 import { DestinationComparison } from "@/components/generative-ui/DestinationComparison";
 import { VisaGrid } from "@/components/generative-ui/VisaGrid";
+import { ToolCTA } from "@/components/generative-ui/ToolCTA";
 import { DestinationExpertMessage, DestinationExpertThinking } from "@/components/DestinationExpert";
 import { CustomUserMessage, ChatUserContext } from "@/components/ChatMessages";
 import { useCallback, useEffect, useState } from "react";
@@ -692,6 +693,74 @@ export default function Home() {
           highlights={result.highlights}
           visas={result.visas}
           slug={result.destination.slug || result.destination.name?.toLowerCase().replace(/\s+/g, '-')}
+        />
+      );
+    },
+  });
+
+  // =============================================================================
+  // INTERACTIVE TOOLS: Render CTAs to open tool pages
+  // =============================================================================
+
+  useRenderToolCall({
+    name: "show_cost_calculator",
+    render: ({ result, status }) => {
+      if (status !== "complete" || !result?.found) return <ToolLoading title="Loading calculator..." />;
+      return (
+        <ToolCTA
+          title={result.title}
+          description={result.description}
+          url={result.url}
+          tool_type="cost_calculator"
+          destination={result.destination}
+        />
+      );
+    },
+  });
+
+  useRenderToolCall({
+    name: "show_comparison_tool",
+    render: ({ result, status }) => {
+      if (status !== "complete" || !result?.found) return <ToolLoading title="Loading comparison..." />;
+      return (
+        <ToolCTA
+          title={result.title}
+          description={result.description}
+          url={result.url}
+          tool_type="comparison"
+          destination1={result.destination1}
+          destination2={result.destination2}
+        />
+      );
+    },
+  });
+
+  useRenderToolCall({
+    name: "show_visa_planner",
+    render: ({ result, status }) => {
+      if (status !== "complete" || !result?.found) return <ToolLoading title="Loading planner..." />;
+      return (
+        <ToolCTA
+          title={result.title}
+          description={result.description}
+          url={result.url}
+          tool_type="visa_planner"
+          destination={result.destination}
+        />
+      );
+    },
+  });
+
+  useRenderToolCall({
+    name: "show_relocation_quiz",
+    render: ({ result, status }) => {
+      if (status !== "complete" || !result?.found) return <ToolLoading title="Loading quiz..." />;
+      return (
+        <ToolCTA
+          title={result.title}
+          description={result.description}
+          url={result.url}
+          tool_type="quiz"
         />
       );
     },

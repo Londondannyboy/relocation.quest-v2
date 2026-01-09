@@ -1943,6 +1943,107 @@ In this chat, keep it SHORT:
                 "found": False,
             }
 
+    @copilotkit_agent.tool
+    async def show_cost_calculator(ctx: RunContext[StateDeps[ATLASAgentState]], destination: str = "") -> dict:
+        """
+        Show the interactive cost of living calculator.
+
+        Use this when users ask about:
+        - "how much does it cost to live in..."
+        - "what's my budget for..."
+        - "compare living costs"
+        - "cost calculator"
+
+        Args:
+            destination: Optional destination to pre-select
+        """
+        return {
+            "found": True,
+            "tool_type": "cost_calculator",
+            "destination": destination,
+            "title": "Cost of Living Calculator",
+            "description": "Compare living costs across destinations and plan your monthly budget",
+            "url": f"/tools/cost-calculator{'?dest=' + destination.lower().replace(' ', '-') if destination else ''}",
+            "ui_component": "ToolCTA",
+        }
+
+    @copilotkit_agent.tool
+    async def show_comparison_tool(ctx: RunContext[StateDeps[ATLASAgentState]], destination1: str = "", destination2: str = "") -> dict:
+        """
+        Show the interactive destination comparison tool.
+
+        Use this when users ask to:
+        - "compare Portugal and Spain"
+        - "which is better, X or Y"
+        - "compare destinations"
+        - "destination comparison tool"
+
+        Args:
+            destination1: First destination to compare
+            destination2: Second destination to compare
+        """
+        url = "/tools/compare"
+        if destination1:
+            url += f"?d1={destination1.lower().replace(' ', '-')}"
+            if destination2:
+                url += f"&d2={destination2.lower().replace(' ', '-')}"
+
+        return {
+            "found": True,
+            "tool_type": "comparison",
+            "destination1": destination1,
+            "destination2": destination2,
+            "title": "Destination Comparison Tool",
+            "description": f"Compare {destination1 or 'destinations'} and {destination2 or 'another'} side-by-side",
+            "url": url,
+            "ui_component": "ToolCTA",
+        }
+
+    @copilotkit_agent.tool
+    async def show_visa_planner(ctx: RunContext[StateDeps[ATLASAgentState]], destination: str = "") -> dict:
+        """
+        Show the visa timeline planner tool.
+
+        Use this when users ask about:
+        - "how do I apply for a visa"
+        - "visa application timeline"
+        - "visa planner"
+        - "steps to get a visa"
+
+        Args:
+            destination: Optional destination for visa planning
+        """
+        return {
+            "found": True,
+            "tool_type": "visa_planner",
+            "destination": destination,
+            "title": "Visa Timeline Planner",
+            "description": f"Plan your visa application for {destination or 'your chosen destination'} step by step",
+            "url": f"/tools/visa-timeline{'?dest=' + destination.lower().replace(' ', '-') if destination else ''}",
+            "ui_component": "ToolCTA",
+        }
+
+    @copilotkit_agent.tool
+    async def show_relocation_quiz(ctx: RunContext[StateDeps[ATLASAgentState]]) -> dict:
+        """
+        Show the relocation readiness quiz.
+
+        Use this when users ask:
+        - "which destination is right for me"
+        - "help me choose a destination"
+        - "take the quiz"
+        - "where should I move"
+        - "I don't know where to go"
+        """
+        return {
+            "found": True,
+            "tool_type": "quiz",
+            "title": "Relocation Readiness Quiz",
+            "description": "Answer 7 questions to find your perfect destination match",
+            "url": "/tools/quiz",
+            "ui_component": "ToolCTA",
+        }
+
     # Create AG-UI app with StateDeps
     agui_app = copilotkit_agent.to_ag_ui(deps=StateDeps(ATLASAgentState()))
     app.mount("/agui", agui_app)
