@@ -1652,17 +1652,25 @@ In this chat, keep it SHORT:
 | "What have I asked about?" | get_conversation_history |
 | "What did we discuss?" | get_conversation_history |
 | "Do you remember...?" | get_conversation_history |
-| Any destination/relocation topic | delegate_to_destination_expert |
+| "yes", "tell me more", "sounds good" (after mentioning a destination) | show_destination_card |
+| Any country name (Portugal, Greece, Spain, etc.) | show_destination_card |
+| "show me destinations", "what countries" | show_featured_destinations |
+| "compare X and Y" | show_comparison_tool |
+| "cost of living", "how much" | show_cost_calculator |
+| "visa", "how to apply" | show_visa_planner |
+| "which destination for me", "quiz" | show_relocation_quiz |
 
-## CRITICAL RULES
-1. ALWAYS use delegate_to_destination_expert for ANY topic - let Expert show the visuals
-2. Your text response should be 1-3 sentences MAX (the Expert shows details)
-3. The Expert's output is the MAIN content in chat
-4. Your voice will tell the full story - chat is just quick reference
+## CRITICAL RULES - YOU MUST FOLLOW THESE
+1. WHENEVER you mention a destination by name → IMMEDIATELY call show_destination_card
+2. If user says "yes", "sure", "tell me more" after you mentioned a destination → call show_destination_card
+3. The card IS the main content - your text should be 1-2 sentences only
+4. NEVER just talk about a destination without showing the card
 5. Example flow:
-   - You say: "Ah, Portugal! Let me check my research..."
-   - Expert shows: Guides, map, visa timeline
-   - You follow up: "Would you like to compare this with Cyprus?"
+   - User: "Tell me about Greece"
+   - You: "Greece is amazing!" + CALL show_destination_card("Greece")
+   - Card appears with full data
+   - User: "Yes, I'm interested"
+   - You: "Great choice!" + CALL show_destination_card("Greece") again if not already shown
 
 ## OUTPUT RULES
 - NEVER output code, variables, or internal tool names
@@ -2042,6 +2050,112 @@ In this chat, keep it SHORT:
             "description": "Answer 7 questions to find your perfect destination match",
             "url": "/tools/quiz",
             "ui_component": "ToolCTA",
+        }
+
+    @copilotkit_agent.tool
+    async def show_destination_card(ctx: RunContext[StateDeps[ATLASAgentState]], destination: str) -> dict:
+        """
+        Show a rich destination card with visa info, cost of living, and job market data.
+
+        ALWAYS call this tool when:
+        - User mentions a country name (Portugal, Spain, Greece, etc.)
+        - User confirms interest in a destination ("yes", "tell me more", "sounds good")
+        - User asks about any specific destination
+        - You recommend or suggest a destination
+
+        This displays a beautiful visual card in CopilotKit - ALWAYS use it!
+
+        Args:
+            destination: The destination name (e.g., "Portugal", "Greece", "Spain")
+        """
+        from .database import get_destination_by_slug, search_destinations
+
+        logger.info(f"[show_destination_card] Looking up: {destination}")
+
+        # Normalize the destination name to slug format
+        slug = destination.lower().strip().replace(" ", "-")
+
+        # Try exact slug match first
+        dest_data = await get_destination_by_slug(slug)
+
+        # If not found, search for it
+        if not dest_data:
+            results = await search_destinations(destination)
+            if results:
+                dest_data = results[0]
+                logger.info(f"[show_destination_card] Found via search: {dest_data.get('country_name')}")
+
+        if not dest_data:
+            logger.warning(f"[show_destination_card] No destination found for: {destination}")
+            return {
+                "found": False,
+                "destination": destination,
+                "message": f"I don't have detailed data for {destination} yet, but I can tell you what I know!",
+                "ui_component": None,
+            }
+
+        # Build the response with UI component
+        logger.info(f"[show_destination_card] Returning card for: {dest_data.get('country_name')}")
+        return {
+            "found": True,
+            "destination": dest_data.get("country_name"),
+            "slug": dest_data.get("slug"),
+            "flag": dest_data.get("flag", "🌍"),
+            "region": dest_data.get("region"),
+            "hero_subtitle": dest_data.get("hero_subtitle"),
+            "hero_image_url": dest_data.get("hero_image_url"),
+            "language": dest_data.get("language"),
+            "quick_facts": dest_data.get("quick_facts", []),
+            "highlights": dest_data.get("highlights", []),
+            "visas": dest_data.get("visas", []),
+            "cost_of_living": dest_data.get("cost_of_living", []),
+            "job_market": dest_data.get("job_market", {}),
+            "ui_component": "DestinationCard",
+        }
+
+    @copilotkit_agent.tool
+    async def show_featured_destinations(ctx: RunContext[StateDeps[ATLASAgentState]]) -> dict:
+        """
+        Show featured destination cards.
+
+        Call this when:
+        - User asks "what destinations do you cover"
+        - User asks "show me destinations"
+        - User wants to browse options
+        - Starting a conversation about where to move
+        """
+        from .database import get_all_destinations
+
+        logger.info("[show_featured_destinations] Fetching all destinations")
+
+        destinations = await get_all_destinations()
+
+        if not destinations:
+            return {
+                "found": False,
+                "message": "I couldn't load the destinations right now.",
+                "ui_component": None,
+            }
+
+        # Return featured destinations
+        featured = [
+            {
+                "country_name": d.get("country_name"),
+                "slug": d.get("slug"),
+                "flag": d.get("flag", "🌍"),
+                "region": d.get("region"),
+                "hero_image_url": d.get("hero_image_url"),
+                "hero_subtitle": d.get("hero_subtitle"),
+            }
+            for d in destinations[:8]
+        ]
+
+        logger.info(f"[show_featured_destinations] Returning {len(featured)} destinations")
+        return {
+            "found": True,
+            "destinations": featured,
+            "count": len(featured),
+            "ui_component": "DestinationGrid",
         }
 
     # Create AG-UI app with StateDeps

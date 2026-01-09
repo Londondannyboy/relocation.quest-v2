@@ -698,6 +698,35 @@ export default function Home() {
     },
   });
 
+  // Show destination card (new proactive tool)
+  useRenderToolCall({
+    name: "show_destination_card",
+    render: ({ result, status }) => {
+      if (status !== "complete" || !result) return <ToolLoading title="Loading destination..." />;
+      if (!result?.found) {
+        return (
+          <div className="p-4 bg-stone-50 rounded-lg text-stone-500">
+            {result?.message || "Destination not found"}
+          </div>
+        );
+      }
+      return (
+        <DestinationCard
+          name={result.destination}
+          flag={result.flag}
+          region={result.region}
+          language={result.language}
+          hero_image_url={result.hero_image_url}
+          hero_subtitle={result.hero_subtitle}
+          quick_facts={result.quick_facts}
+          highlights={result.highlights}
+          visas={result.visas}
+          slug={result.slug}
+        />
+      );
+    },
+  });
+
   // =============================================================================
   // INTERACTIVE TOOLS: Render CTAs to open tool pages
   // =============================================================================
