@@ -132,7 +132,7 @@ RULES:
         const { accessToken } = await res.json();
 
         const systemPrompt = buildSystemPrompt();
-        const configId = process.env.NEXT_PUBLIC_HUME_CONFIG_ID || "";
+        const configId = (process.env.NEXT_PUBLIC_HUME_CONFIG_ID || "").trim();
 
         const sessionIdWithName = userName
           ? `${userName}|${userId || Date.now()}`

@@ -166,8 +166,9 @@ AGENT_URL=https://atlas-agent-production.up.railway.app/agui
 DATABASE_URL=postgresql://neondb_owner:npg_3aW1xuoyUiYk@ep-wandering-leaf-ab17v6rr-pooler.eu-west-2.aws.neon.tech/neondb?sslmode=require
 HUME_API_KEY=FS313vtpHE8svozXdt7hAs3m0U4rd0dJwV1VW0fWF9cewu79
 HUME_SECRET_KEY=4LF8hFTCcMhbl3fbuOO8UGAKpoXdJ91xWjnSUTrCfhsV8GN20A2Xkgs0Y4tPXXbN
-NEXT_PUBLIC_HUME_CONFIG_ID=6b57249f-a118-45ce-88ab-b80899bf9864
+NEXT_PUBLIC_HUME_CONFIG_ID=8d16f5df-8bf4-4641-a58d-84dca68fa7b0
 UNSPLASH_ACCESS_KEY=<set on Vercel>
+ZEP_API_KEY=<set on Vercel>
 ```
 
 ### Backend (Railway)
@@ -175,6 +176,8 @@ UNSPLASH_ACCESS_KEY=<set on Vercel>
 DATABASE_URL=postgresql://neondb_owner:npg_3aW1xuoyUiYk@ep-wandering-leaf-ab17v6rr-pooler.eu-west-2.aws.neon.tech/neondb?sslmode=require
 GROQ_API_KEY=<set on Railway>
 VOYAGE_API_KEY=<set on Railway>
+GOOGLE_API_KEY=<set on Railway>
+ZEP_API_KEY=<set on Railway>
 ```
 
 ---

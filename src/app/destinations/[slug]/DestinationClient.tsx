@@ -216,9 +216,10 @@ interface QuickFact {
 }
 
 interface Highlight {
-  title: string;
-  description: string;
   icon: string;
+  text?: string;
+  title?: string;
+  description?: string;
 }
 
 interface Visa {
@@ -230,23 +231,30 @@ interface Visa {
   cost: string;
 }
 
-interface CostItem {
-  category: string;
-  item: string;
-  cost: string;
-  frequency: string;
-}
-
-interface CostOfLiving {
+interface CityLivingCost {
+  cityName: string;
   currency: string;
-  items: CostItem[];
+  costIndex: number;
+  rent1BRCenter: number;
+  rent1BROutside: number;
+  rent3BRCenter: number;
+  groceries: number;
+  dining: number;
+  utilities: number;
+  transportation: number;
 }
 
 interface JobMarket {
-  remote_friendly: boolean;
-  in_demand_sectors: string[];
-  avg_salaries: Record<string, string>;
-  work_culture: string;
+  avgSalaryTech?: number;
+  topIndustries?: string[];
+  growingSectors?: string[];
+  avgWorkHoursWeek?: number;
+  vacationDaysStandard?: number;
+  // Legacy fields
+  remote_friendly?: boolean;
+  in_demand_sectors?: string[];
+  avg_salaries?: Record<string, string>;
+  work_culture?: string;
 }
 
 interface FAQ {
@@ -267,7 +275,7 @@ interface Destination {
   quick_facts: QuickFact[];
   highlights: Highlight[];
   visas: Visa[];
-  cost_of_living: CostOfLiving;
+  cost_of_living: CityLivingCost[];
   job_market: JobMarket;
   faqs: FAQ[];
   meta_title: string;
@@ -420,7 +428,7 @@ export default function DestinationClient({ slug }: { slug: string }) {
         <div className="bg-white rounded-2xl shadow-xl p-6 grid grid-cols-2 md:grid-cols-4 gap-4">
           {destination.quick_facts?.map((fact, i) => (
             <div key={i} className="text-center p-4">
-              <div className="text-3xl mb-2">{getIcon(fact.icon)}</div>
+              <div className="text-3xl mb-2">{fact.icon}</div>
               <div className="text-sm text-gray-500">{fact.label}</div>
               <div className="font-semibold text-gray-900">{fact.value}</div>
             </div>
@@ -469,9 +477,8 @@ export default function DestinationClient({ slug }: { slug: string }) {
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {destination.highlights?.map((highlight, i) => (
                   <div key={i} className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-                    <div className="text-3xl mb-3">{getIcon(highlight.icon)}</div>
-                    <h3 className="font-semibold text-gray-900 mb-2">{highlight.title}</h3>
-                    <p className="text-gray-600 text-sm">{highlight.description}</p>
+                    <div className="text-3xl mb-3">{highlight.icon || '✓'}</div>
+                    <p className="text-gray-700">{highlight.text || highlight.title || highlight.description}</p>
                   </div>
                 ))}
               </div>
@@ -551,30 +558,56 @@ export default function DestinationClient({ slug }: { slug: string }) {
             <h2 className="text-2xl font-bold text-gray-900 mb-6">
               Cost of Living in {destination.country_name}
             </h2>
-            {destination.cost_of_living && (
-              <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                <table className="w-full">
-                  <thead className="bg-stone-50">
-                    <tr>
-                      <th className="text-left p-4 font-medium text-gray-700">Category</th>
-                      <th className="text-left p-4 font-medium text-gray-700">Item</th>
-                      <th className="text-right p-4 font-medium text-gray-700">
-                        Cost ({destination.cost_of_living.currency})
-                      </th>
-                      <th className="text-right p-4 font-medium text-gray-700">Frequency</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {destination.cost_of_living.items?.map((item, i) => (
-                      <tr key={i} className="hover:bg-gray-50">
-                        <td className="p-4 text-gray-600">{item.category}</td>
-                        <td className="p-4 text-gray-900">{item.item}</td>
-                        <td className="p-4 text-right font-medium text-gray-900">{item.cost}</td>
-                        <td className="p-4 text-right text-gray-500">{item.frequency}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+            {destination.cost_of_living && destination.cost_of_living.length > 0 && (
+              <div className="space-y-6">
+                {destination.cost_of_living.map((city: CityLivingCost, i: number) => (
+                  <div key={i} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div className="bg-stone-50 p-4 border-b border-gray-100">
+                      <h3 className="text-lg font-semibold text-gray-900">{city.cityName}</h3>
+                      <p className="text-sm text-gray-500">Cost Index: {city.costIndex}/100</p>
+                    </div>
+                    <div className="p-6 grid md:grid-cols-2 gap-6">
+                      <div>
+                        <h4 className="font-medium text-gray-900 mb-3">🏠 Rent (Monthly)</h4>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">1BR City Center</span>
+                            <span className="font-medium">€{city.rent1BRCenter}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">1BR Outside Center</span>
+                            <span className="font-medium">€{city.rent1BROutside}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">3BR City Center</span>
+                            <span className="font-medium">€{city.rent3BRCenter}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-gray-900 mb-3">💰 Other Costs (Monthly)</h4>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Groceries</span>
+                            <span className="font-medium">€{city.groceries}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Dining Out</span>
+                            <span className="font-medium">€{city.dining}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Utilities</span>
+                            <span className="font-medium">€{city.utilities}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Transportation</span>
+                            <span className="font-medium">€{city.transportation}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </div>
@@ -587,52 +620,68 @@ export default function DestinationClient({ slug }: { slug: string }) {
               Job Market in {destination.country_name}
             </h2>
 
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-                <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <span>🏠</span> Remote Work Friendly
-                </h3>
-                <div className={`text-2xl font-bold ${destination.job_market.remote_friendly ? 'text-green-600' : 'text-orange-600'}`}>
-                  {destination.job_market.remote_friendly ? 'Yes' : 'Limited'}
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {destination.job_market.avgSalaryTech && (
+                <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                  <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <span>💰</span> Avg Tech Salary
+                  </h3>
+                  <div className="text-2xl font-bold text-green-600">
+                    €{destination.job_market.avgSalaryTech.toLocaleString()}/yr
+                  </div>
                 </div>
-              </div>
+              )}
 
-              <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-                <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <span>📈</span> In-Demand Sectors
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {destination.job_market.in_demand_sectors?.map((sector, i) => (
-                    <span key={i} className="px-3 py-1 bg-stone-100 text-stone-700 rounded-full text-sm">
-                      {sector}
-                    </span>
-                  ))}
+              {destination.job_market.avgWorkHoursWeek && (
+                <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                  <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <span>⏰</span> Work Hours
+                  </h3>
+                  <div className="text-2xl font-bold text-gray-900">
+                    {destination.job_market.avgWorkHoursWeek}h/week
+                  </div>
                 </div>
-              </div>
+              )}
+
+              {destination.job_market.vacationDaysStandard && (
+                <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                  <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <span>🏖️</span> Vacation Days
+                  </h3>
+                  <div className="text-2xl font-bold text-blue-600">
+                    {destination.job_market.vacationDaysStandard} days/yr
+                  </div>
+                </div>
+              )}
             </div>
 
-            {destination.job_market.avg_salaries && Object.keys(destination.job_market.avg_salaries).length > 0 && (
+            {destination.job_market.topIndustries && destination.job_market.topIndustries.length > 0 && (
               <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
                 <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <span>💰</span> Average Salaries
+                  <span>🏢</span> Top Industries
                 </h3>
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {Object.entries(destination.job_market.avg_salaries).map(([role, salary], i) => (
-                    <div key={i} className="flex justify-between items-center p-3 bg-stone-50 rounded-lg">
-                      <span className="text-gray-600">{role}</span>
-                      <span className="font-medium text-gray-900">{salary}</span>
-                    </div>
+                <div className="flex flex-wrap gap-2">
+                  {destination.job_market.topIndustries.map((industry, i) => (
+                    <span key={i} className="px-4 py-2 bg-stone-100 text-stone-700 rounded-full text-sm font-medium">
+                      {industry}
+                    </span>
                   ))}
                 </div>
               </div>
             )}
 
-            {destination.job_market.work_culture && (
+            {destination.job_market.growingSectors && destination.job_market.growingSectors.length > 0 && (
               <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
                 <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <span>🤝</span> Work Culture
+                  <span>📈</span> Growing Sectors
                 </h3>
-                <p className="text-gray-600">{destination.job_market.work_culture}</p>
+                <div className="flex flex-wrap gap-2">
+                  {destination.job_market.growingSectors.map((sector, i) => (
+                    <span key={i} className="px-4 py-2 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+                      {sector}
+                    </span>
+                  ))}
+                </div>
               </div>
             )}
           </div>

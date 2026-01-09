@@ -52,9 +52,9 @@ export function DestinationExpertAvatar({
         title="Destination Expert"
       >
         <img
-          src="/destination-expert-avatar.png"
+          src="/expert-icon.svg"
           alt="Destination Expert"
-          className="w-full h-full object-cover"
+          className="w-full h-full"
         />
       </div>
 

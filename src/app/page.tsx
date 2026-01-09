@@ -134,7 +134,7 @@ function SmartAssistantMessage({ message }: { message?: { generativeUI?: () => R
           <div className="flex gap-3">
             <div className="flex-shrink-0">
               <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-amber-300">
-                <img src="/atlas-avatar.jpg" alt="ATLAS" className="w-full h-full object-cover" />
+                <img src="/atlas-icon.svg" alt="ATLAS" className="w-full h-full" />
               </div>
             </div>
             <div className="flex-1">
@@ -152,7 +152,7 @@ function SmartAssistantMessage({ message }: { message?: { generativeUI?: () => R
         <div className="flex gap-3">
           <div className="flex-shrink-0">
             <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-amber-300">
-              <img src="/destination-expert-avatar.png" alt="Destination Expert" className="w-full h-full object-cover" />
+              <img src="/expert-icon.svg" alt="Destination Expert" className="w-full h-full" />
             </div>
           </div>
           <div className="flex-1">
@@ -174,7 +174,7 @@ function SmartAssistantMessage({ message }: { message?: { generativeUI?: () => R
       <div className="flex gap-3 mb-4">
         <div className="flex-shrink-0">
           <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-amber-300">
-            <img src="/atlas-avatar.jpg" alt="ATLAS" className="w-full h-full object-cover" />
+            <img src="/atlas-icon.svg" alt="ATLAS" className="w-full h-full" />
           </div>
         </div>
         <div className="flex-1">

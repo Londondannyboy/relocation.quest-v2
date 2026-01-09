@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <defs>
+    <linearGradient id="globe-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f59e0b;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#d97706;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="land-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1c1917;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#292524;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background circle -->
+  <circle cx="50" cy="50" r="48" fill="url(#globe-gradient)"/>
+
+  <!-- Globe outline -->
+  <circle cx="50" cy="50" r="35" fill="none" stroke="#1c1917" stroke-width="2.5"/>
+
+  <!-- Latitude lines -->
+  <ellipse cx="50" cy="50" rx="35" ry="12" fill="none" stroke="#1c1917" stroke-width="1.5"/>
+  <ellipse cx="50" cy="50" rx="35" ry="25" fill="none" stroke="#1c1917" stroke-width="1.5"/>
+
+  <!-- Longitude line (center) -->
+  <ellipse cx="50" cy="50" rx="12" ry="35" fill="none" stroke="#1c1917" stroke-width="1.5"/>
+
+  <!-- Stylized continents/land masses -->
+  <path d="M35 35 Q40 30 50 32 Q60 30 65 38 Q62 45 55 42 Q48 44 42 40 Q38 38 35 35Z" fill="url(#land-gradient)" opacity="0.9"/>
+  <path d="M55 55 Q65 52 70 60 Q68 68 60 65 Q55 62 55 55Z" fill="url(#land-gradient)" opacity="0.9"/>
+  <path d="M30 50 Q28 55 32 60 Q38 62 40 58 Q38 52 30 50Z" fill="url(#land-gradient)" opacity="0.9"/>
+
+  <!-- Location pin -->
+  <g transform="translate(58, 25)">
+    <path d="M8 0C3.58 0 0 3.58 0 8c0 5.25 8 13 8 13s8-7.75 8-13c0-4.42-3.58-8-8-8zm0 11c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3z" fill="#fff"/>
+  </g>
+</svg>

@@ -96,9 +96,9 @@ export function CustomAssistantMessage({ message, isLoading, isGenerating }: Ass
       <div className="flex-shrink-0">
         <div className={`w-8 h-8 rounded-full overflow-hidden border-2 ${isGenerating ? "border-amber-400 animate-pulse" : "border-amber-300"}`}>
           <img
-            src="/atlas-avatar.jpg"
+            src="/atlas-icon.svg"
             alt="ATLAS"
-            className="w-full h-full object-cover"
+            className="w-full h-full"
           />
         </div>
       </div>

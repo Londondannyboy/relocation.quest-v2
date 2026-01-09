@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import ReactMarkdown from "react-markdown";
 
 interface Article {
   id: string;
@@ -23,22 +24,34 @@ export function ArticleClient({ article }: { article: Article }) {
     router.push(`/?topic=${encodeURIComponent(article.title)}`);
   };
 
-  // Render content - handle both plain text and HTML
+  // Render content - handle HTML, Markdown, or plain text
   const renderContent = () => {
-    // Check if content contains HTML tags
-    if (article.content.includes("<") && article.content.includes(">")) {
+    const content = article.content || article.content_text || "";
+
+    // Check if content contains HTML tags (full HTML)
+    if (content.includes("<h") || content.includes("<p>") || content.includes("<div")) {
       return (
         <div
-          className="prose prose-stone prose-lg max-w-none"
-          dangerouslySetInnerHTML={{ __html: article.content }}
+          className="prose prose-stone prose-lg max-w-none prose-headings:font-serif prose-h2:text-2xl prose-h3:text-xl prose-p:text-gray-700 prose-li:text-gray-700"
+          dangerouslySetInnerHTML={{ __html: content }}
         />
       );
     }
+
+    // Check if content contains Markdown (## headers, - lists, etc.)
+    if (content.includes("##") || content.includes("- ") || content.includes("**")) {
+      return (
+        <div className="prose prose-stone prose-lg max-w-none prose-headings:font-serif prose-h2:text-2xl prose-h2:mt-8 prose-h2:mb-4 prose-h3:text-xl prose-h3:mt-6 prose-h3:mb-3 prose-p:text-gray-700 prose-p:leading-relaxed prose-li:text-gray-700 prose-ul:my-4 prose-ol:my-4">
+          <ReactMarkdown>{content}</ReactMarkdown>
+        </div>
+      );
+    }
+
     // Plain text - split by paragraphs
     return (
       <div className="prose prose-stone prose-lg max-w-none">
-        {article.content.split("\n\n").map((paragraph, i) => (
-          <p key={i}>{paragraph}</p>
+        {content.split("\n\n").map((paragraph, i) => (
+          <p key={i} className="text-gray-700 leading-relaxed mb-4">{paragraph}</p>
         ))}
       </div>
     );
