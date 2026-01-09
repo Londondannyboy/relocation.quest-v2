@@ -253,7 +253,7 @@ SELECT topic_name, topic_keywords FROM topic_images;
 
 ---
 
-## What's Working (Updated Jan 8, 2026)
+## What's Working (Updated Jan 9, 2026)
 
 ### Infrastructure
 - [x] Frontend deployed to Vercel
@@ -275,6 +275,8 @@ Portugal, Spain, Cyprus, Dubai, Canada, Australia, UK, New Zealand, France, Germ
 - [x] `/guides` - Articles organized by category
 - [x] `/guides/digital-nomad-visas` - SEO optimized visa guide
 - [x] `/guides/cost-of-living` - Cost comparison page
+- [x] `/tools` - Tools index page (NEW)
+- [x] `/tools/cost-calculator` - Interactive cost of living calculator (NEW)
 - [x] `/contact`, `/privacy`, `/terms`, `/articles`
 
 ### Generative UI Components (NEW)
@@ -299,6 +301,12 @@ All in `src/components/generative-ui/`:
 - [x] `compare_two_destinations` - Compare any 2 destinations
 - [x] `get_destination_details` - Comprehensive destination info
 - [x] System prompt lists all 17 destinations
+
+### Agent Fixes (Jan 9, 2026)
+- [x] Search extracts key terms from natural language ("tell me about Portugal" → "portugal")
+- [x] Fixed affirmation detection (removed overly broad "tell me" match)
+- [x] Voyage API fallback (uses keyword search when no API key)
+- [x] Groq→Gemini model fallback for CLM endpoint
 
 ---
 
