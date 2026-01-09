@@ -13,21 +13,21 @@ const TOOLS = [
     title: "Destination Comparison",
     description: "Compare two destinations side-by-side on visas, costs, and lifestyle",
     icon: "⚖️",
-    status: "coming",
+    status: "live",
   },
   {
     slug: "visa-timeline",
     title: "Visa Timeline Planner",
     description: "Plan your visa application with step-by-step timelines",
     icon: "📋",
-    status: "coming",
+    status: "live",
   },
   {
     slug: "quiz",
     title: "Relocation Readiness Quiz",
     description: "Find out which destinations match your priorities",
     icon: "🎯",
-    status: "coming",
+    status: "live",
   },
 ];
 
