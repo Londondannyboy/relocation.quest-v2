@@ -38,7 +38,8 @@ export async function GET(req: NextRequest) {
           hero_title,
           hero_subtitle,
           hero_image_url,
-          meta_description
+          meta_description,
+          cost_of_living
         FROM destinations
         WHERE enabled = true AND featured = true
         ORDER BY priority DESC, country_name ASC
@@ -54,7 +55,8 @@ export async function GET(req: NextRequest) {
           hero_title,
           hero_subtitle,
           hero_image_url,
-          meta_description
+          meta_description,
+          cost_of_living
         FROM destinations
         WHERE enabled = true
         ORDER BY priority DESC, country_name ASC

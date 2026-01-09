@@ -33,3 +33,4 @@ Thumbs.db
 .env.vercel
 .env.local
 .env
+agent/.env

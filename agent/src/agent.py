@@ -1390,16 +1390,16 @@ tax implications, cost of living, and quality of life factors. Where are you thi
         "absolutely", "definitely", "certainly", "indeed", "alright", "right",
     }
     AFFIRMATION_PHRASES = {
-        "go on", "tell me more", "tell me", "go ahead", "yes please", "sure thing",
+        "go on", "tell me more", "go ahead", "yes please", "sure thing",
         "of course", "i'd like that", "i would like that", "sounds good", "sounds great",
         "let's do it", "let's hear it", "why not", "i'm interested", "please do",
     }
 
-    # Check if this is a pure affirmation
+    # Check if this is a pure affirmation (exact match only - no partial matching)
+    # Removed "tell me" as it conflicts with "tell me about X" queries
     is_affirmation = (
         normalized_lower in AFFIRMATION_WORDS or
-        normalized_lower in AFFIRMATION_PHRASES or
-        any(phrase in normalized_lower for phrase in AFFIRMATION_PHRASES)
+        normalized_lower in AFFIRMATION_PHRASES
     )
 
     if is_affirmation:
@@ -1443,9 +1443,11 @@ tax implications, cost of living, and quality of life factors. Where are you thi
             dynamic_prompt = build_system_prompt(user_context)
 
             # Create a temporary agent with the dynamic prompt
-            # Use Groq for faster voice responses (~10x faster than Gemini)
+            # Use Groq for faster voice responses, fallback to Gemini
+            groq_key = os.environ.get("GROQ_API_KEY", "")
+            model = 'groq:llama-3.1-8b-instant' if groq_key else 'google-gla:gemini-2.0-flash'
             temp_agent = Agent(
-                'groq:llama-3.1-8b-instant',
+                model,
                 deps_type=ATLASDeps,
                 system_prompt=dynamic_prompt,
                 retries=2,

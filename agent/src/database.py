@@ -43,6 +43,53 @@ async def get_connection() -> AsyncGenerator[asyncpg.Connection, None]:
         yield conn
 
 
+# Known destinations for extraction
+KNOWN_DESTINATIONS = {
+    "portugal", "spain", "cyprus", "dubai", "canada", "australia", "uk",
+    "new zealand", "france", "germany", "netherlands", "mexico", "thailand",
+    "malta", "greece", "italy", "indonesia", "bali", "lisbon", "barcelona",
+    "madrid", "amsterdam", "berlin", "paris", "london", "dublin", "singapore",
+}
+
+# Stop phrases to remove from queries
+STOP_PHRASES = [
+    "tell me about", "what is", "what's", "show me", "how do i", "how can i",
+    "i want to", "i'd like to", "can you", "could you", "please", "the",
+    "cost of living in", "visa for", "moving to", "relocating to", "living in",
+]
+
+
+def extract_search_terms(query: str) -> str:
+    """
+    Extract key search terms from natural language query.
+
+    Removes common stop phrases and extracts destination names.
+    Falls back to the cleaned query if no destination found.
+    """
+    query_lower = query.lower().strip()
+
+    # Remove stop phrases
+    for phrase in STOP_PHRASES:
+        query_lower = query_lower.replace(phrase, " ")
+
+    # Clean up extra spaces
+    query_lower = " ".join(query_lower.split())
+
+    # Check for known destinations
+    for dest in KNOWN_DESTINATIONS:
+        if dest in query_lower:
+            # Return the destination plus any remaining important words
+            remaining = query_lower.replace(dest, "").strip()
+            # Keep important keywords like "visa", "cost", "job"
+            important = [w for w in remaining.split() if w in {"visa", "cost", "job", "tax", "living", "guide", "nomad", "digital"}]
+            if important:
+                return f"{dest} {' '.join(important)}"
+            return dest
+
+    # No known destination - return cleaned query
+    return query_lower if query_lower else query
+
+
 async def search_articles_keyword(
     query_text: str,
     limit: int = 5,
@@ -63,7 +110,8 @@ async def search_articles_keyword(
         List of matching articles with relevance scores
     """
     async with get_connection() as conn:
-        query_lower = query_text.lower()
+        # Extract key search terms from natural language query
+        query_lower = extract_search_terms(query_text)
 
         # Build query with optional country filter
         if country:

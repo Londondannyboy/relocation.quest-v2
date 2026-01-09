@@ -71,6 +71,16 @@ export function Header() {
                 Destinations
               </Link>
               <Link
+                href="/tools"
+                className={`hidden sm:block px-2 md:px-3 py-2 text-xs md:text-sm transition-colors ${
+                  pathname?.startsWith('/tools')
+                    ? 'text-white bg-white/10'
+                    : 'text-gray-300 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                Tools
+              </Link>
+              <Link
                 href="/contact"
                 className={`hidden md:block px-2 md:px-3 py-2 text-xs md:text-sm transition-colors ${
                   pathname === '/contact'
@@ -170,6 +180,13 @@ export function Header() {
               onClick={() => setMenuOpen(false)}
             >
               Destinations
+            </Link>
+            <Link
+              href="/tools"
+              className={`block px-4 py-2 ${pathname?.startsWith('/tools') ? 'text-white bg-white/10' : 'text-gray-300'}`}
+              onClick={() => setMenuOpen(false)}
+            >
+              Tools
             </Link>
             <Link
               href="/contact"

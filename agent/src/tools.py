@@ -2,6 +2,7 @@
 
 import os
 import re
+import sys
 import httpx
 from typing import Optional
 
@@ -118,6 +119,7 @@ async def search_articles(query: str, limit: int = 5) -> SearchResults:
     Search relocation guides using hybrid vector + keyword search.
 
     Normalizes the query with phonetic corrections, then performs RRF search.
+    Falls back to keyword-only search if Voyage AI is not configured.
 
     Args:
         query: The user's question or destination to search for
@@ -129,12 +131,17 @@ async def search_articles(query: str, limit: int = 5) -> SearchResults:
     # Normalize query with phonetic corrections
     normalized_query = normalize_query(query)
 
-    # Get embedding
-    embedding = await get_voyage_embedding(normalized_query)
+    # Try to get embedding, fall back to keyword search if Voyage not configured
+    embedding = None
+    if VOYAGE_API_KEY:
+        try:
+            embedding = await get_voyage_embedding(normalized_query)
+        except Exception as e:
+            print(f"[ATLAS Search] Voyage embedding failed, using keyword search: {e}", file=sys.stderr)
 
-    # Search database with RRF
+    # Search database - falls back to keyword search if no embedding
     results = await search_articles_hybrid(
-        query_embedding=embedding,
+        query_embedding=embedding or [],
         query_text=normalized_query,
         limit=limit,
         similarity_threshold=0.45,
