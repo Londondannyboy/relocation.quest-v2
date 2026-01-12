@@ -106,3 +106,17 @@ body {
 .copilotKitHeader [class*="pulse"] {
   display: none !important;
 }
+
+/* IntelligentDocument highlight animation */
+@keyframes highlight-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(251, 191, 36, 0);
+  }
+  50% {
+    box-shadow: 0 0 0 12px rgba(251, 191, 36, 0.25);
+  }
+}
+
+.animate-highlight-pulse {
+  animation: highlight-pulse 0.8s ease-in-out 3;
+}

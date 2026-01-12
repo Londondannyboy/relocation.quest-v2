@@ -282,7 +282,15 @@ Portugal, Spain, Cyprus, Dubai, Canada, Australia, UK, New Zealand, France, Germ
 - [x] `/tools/cost-calculator` - Interactive cost of living calculator (NEW)
 - [x] `/contact`, `/privacy`, `/terms`, `/articles`
 
-### Generative UI Components (NEW)
+### IntelligentDocument Pattern (Jan 12, 2026)
+All in `src/components/intelligent/`:
+- [x] `IntelligentDocument.tsx` - Wrapper that makes pages respond to conversation
+- [x] `DocumentSection.tsx` - Highlightable sections that scroll into view
+- [x] Frontend CopilotKit actions: `update_destination_view`, `set_user_currency`, `compare_destinations`
+- [x] Destination pages wrapped with IntelligentDocument
+- [x] Sections: overview, visas, costs, jobs, gallery, faqs
+
+### Generative UI Components
 All in `src/components/generative-ui/`:
 - [x] `DestinationCard.tsx` - Full destination overview with tabs
 - [x] `DestinationCardCompact` - Grid cards for recommendations

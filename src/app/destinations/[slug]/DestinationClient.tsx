@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { IntelligentDocument, DocumentSection } from '@/components/intelligent';
 
 interface GalleryImage {
   url: string;
@@ -388,6 +389,10 @@ export default function DestinationClient({ slug }: { slug: string }) {
   }
 
   return (
+    <IntelligentDocument
+      pageContext={`${destination.country_name} relocation guide`}
+      availableSections={['overview', 'visas', 'costs', 'jobs', 'gallery', 'faqs']}
+    >
     <div className="min-h-screen bg-gradient-to-b from-stone-100 to-white">
       {/* Hero Section */}
       <div
@@ -465,226 +470,238 @@ export default function DestinationClient({ slug }: { slug: string }) {
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Overview Tab */}
         {activeTab === 'overview' && (
-          <div className="space-y-8">
-            {/* Image Gallery */}
-            <section>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Discover {destination.country_name}</h2>
-              <ImageGallery countryName={destination.country_name} />
-            </section>
+          <DocumentSection id="overview">
+            <div className="space-y-8">
+              {/* Image Gallery */}
+              <DocumentSection id="gallery">
+                <section>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-6">Discover {destination.country_name}</h2>
+                  <ImageGallery countryName={destination.country_name} />
+                </section>
+              </DocumentSection>
 
-            <section>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Why {destination.country_name}?</h2>
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {destination.highlights?.map((highlight, i) => (
-                  <div key={i} className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-                    <div className="text-3xl mb-3">{highlight.icon || '✓'}</div>
-                    <p className="text-gray-700">{highlight.text || highlight.title || highlight.description}</p>
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            {/* FAQs */}
-            {destination.faqs && destination.faqs.length > 0 && (
               <section>
-                <h2 className="text-2xl font-bold text-gray-900 mb-6">Frequently Asked Questions</h2>
-                <div className="space-y-4">
-                  {destination.faqs.map((faq, i) => (
-                    <details key={i} className="bg-white rounded-xl shadow-sm border border-gray-100 group">
-                      <summary className="p-6 cursor-pointer font-medium text-gray-900 flex items-center justify-between">
-                        {faq.question}
-                        <span className="text-gray-400 group-open:rotate-180 transition-transform">▼</span>
-                      </summary>
-                      <div className="px-6 pb-6 text-gray-600">
-                        {faq.answer}
-                      </div>
-                    </details>
+                <h2 className="text-2xl font-bold text-gray-900 mb-6">Why {destination.country_name}?</h2>
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {destination.highlights?.map((highlight, i) => (
+                    <div key={i} className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                      <div className="text-3xl mb-3">{highlight.icon || '✓'}</div>
+                      <p className="text-gray-700">{highlight.text || highlight.title || highlight.description}</p>
+                    </div>
                   ))}
                 </div>
               </section>
-            )}
-          </div>
+
+              {/* FAQs */}
+              {destination.faqs && destination.faqs.length > 0 && (
+                <DocumentSection id="faqs">
+                  <section>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-6">Frequently Asked Questions</h2>
+                    <div className="space-y-4">
+                      {destination.faqs.map((faq, i) => (
+                        <details key={i} className="bg-white rounded-xl shadow-sm border border-gray-100 group">
+                          <summary className="p-6 cursor-pointer font-medium text-gray-900 flex items-center justify-between">
+                            {faq.question}
+                            <span className="text-gray-400 group-open:rotate-180 transition-transform">▼</span>
+                          </summary>
+                          <div className="px-6 pb-6 text-gray-600">
+                            {faq.answer}
+                          </div>
+                        </details>
+                      ))}
+                    </div>
+                  </section>
+                </DocumentSection>
+              )}
+            </div>
+          </DocumentSection>
         )}
 
         {/* Visas Tab */}
         {activeTab === 'visas' && (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Visa Options for {destination.country_name}</h2>
-            {destination.visas?.map((visa, i) => (
-              <div key={i} className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <h3 className="text-xl font-bold text-gray-900">{visa.name}</h3>
-                    <span className="inline-block px-3 py-1 text-sm bg-stone-100 text-stone-700 rounded-full mt-2">
-                      {visa.type}
-                    </span>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-sm text-gray-500">Duration</div>
-                    <div className="font-semibold text-gray-900">{visa.duration}</div>
-                  </div>
-                </div>
-                <div className="grid md:grid-cols-2 gap-6 mt-6">
-                  <div>
-                    <h4 className="font-medium text-gray-900 mb-3">Requirements</h4>
-                    <ul className="space-y-2">
-                      {visa.requirements?.map((req, j) => (
-                        <li key={j} className="flex items-start gap-2 text-sm text-gray-600">
-                          <span className="text-green-500 mt-0.5">✓</span>
-                          {req}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div className="space-y-4">
+          <DocumentSection id="visas">
+            <div className="space-y-6">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">Visa Options for {destination.country_name}</h2>
+              {destination.visas?.map((visa, i) => (
+                <div key={i} className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                  <div className="flex items-start justify-between mb-4">
                     <div>
-                      <div className="text-sm text-gray-500">Processing Time</div>
-                      <div className="font-medium text-gray-900">{visa.processingTime}</div>
+                      <h3 className="text-xl font-bold text-gray-900">{visa.name}</h3>
+                      <span className="inline-block px-3 py-1 text-sm bg-stone-100 text-stone-700 rounded-full mt-2">
+                        {visa.type}
+                      </span>
                     </div>
-                    <div>
-                      <div className="text-sm text-gray-500">Cost</div>
-                      <div className="font-medium text-gray-900">{visa.cost}</div>
+                    <div className="text-right">
+                      <div className="text-sm text-gray-500">Duration</div>
+                      <div className="font-semibold text-gray-900">{visa.duration}</div>
                     </div>
                   </div>
+                  <div className="grid md:grid-cols-2 gap-6 mt-6">
+                    <div>
+                      <h4 className="font-medium text-gray-900 mb-3">Requirements</h4>
+                      <ul className="space-y-2">
+                        {visa.requirements?.map((req, j) => (
+                          <li key={j} className="flex items-start gap-2 text-sm text-gray-600">
+                            <span className="text-green-500 mt-0.5">✓</span>
+                            {req}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div className="space-y-4">
+                      <div>
+                        <div className="text-sm text-gray-500">Processing Time</div>
+                        <div className="font-medium text-gray-900">{visa.processingTime}</div>
+                      </div>
+                      <div>
+                        <div className="text-sm text-gray-500">Cost</div>
+                        <div className="font-medium text-gray-900">{visa.cost}</div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          </DocumentSection>
         )}
 
         {/* Cost of Living Tab */}
         {activeTab === 'costs' && (
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">
-              Cost of Living in {destination.country_name}
-            </h2>
-            {destination.cost_of_living && destination.cost_of_living.length > 0 && (
-              <div className="space-y-6">
-                {destination.cost_of_living.map((city: CityLivingCost, i: number) => (
-                  <div key={i} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div className="bg-stone-50 p-4 border-b border-gray-100">
-                      <h3 className="text-lg font-semibold text-gray-900">{city.cityName}</h3>
-                      <p className="text-sm text-gray-500">Cost Index: {city.costIndex}/100</p>
-                    </div>
-                    <div className="p-6 grid md:grid-cols-2 gap-6">
-                      <div>
-                        <h4 className="font-medium text-gray-900 mb-3">🏠 Rent (Monthly)</h4>
-                        <div className="space-y-2 text-sm">
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">1BR City Center</span>
-                            <span className="font-medium">€{city.rent1BRCenter}</span>
+          <DocumentSection id="costs">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">
+                Cost of Living in {destination.country_name}
+              </h2>
+              {destination.cost_of_living && destination.cost_of_living.length > 0 && (
+                <div className="space-y-6">
+                  {destination.cost_of_living.map((city: CityLivingCost, i: number) => (
+                    <div key={i} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                      <div className="bg-stone-50 p-4 border-b border-gray-100">
+                        <h3 className="text-lg font-semibold text-gray-900">{city.cityName}</h3>
+                        <p className="text-sm text-gray-500">Cost Index: {city.costIndex}/100</p>
+                      </div>
+                      <div className="p-6 grid md:grid-cols-2 gap-6">
+                        <div>
+                          <h4 className="font-medium text-gray-900 mb-3">🏠 Rent (Monthly)</h4>
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">1BR City Center</span>
+                              <span className="font-medium">€{city.rent1BRCenter}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">1BR Outside Center</span>
+                              <span className="font-medium">€{city.rent1BROutside}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">3BR City Center</span>
+                              <span className="font-medium">€{city.rent3BRCenter}</span>
+                            </div>
                           </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">1BR Outside Center</span>
-                            <span className="font-medium">€{city.rent1BROutside}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">3BR City Center</span>
-                            <span className="font-medium">€{city.rent3BRCenter}</span>
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-gray-900 mb-3">💰 Other Costs (Monthly)</h4>
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Groceries</span>
+                              <span className="font-medium">€{city.groceries}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Dining Out</span>
+                              <span className="font-medium">€{city.dining}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Utilities</span>
+                              <span className="font-medium">€{city.utilities}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Transportation</span>
+                              <span className="font-medium">€{city.transportation}</span>
+                            </div>
                           </div>
                         </div>
                       </div>
-                      <div>
-                        <h4 className="font-medium text-gray-900 mb-3">💰 Other Costs (Monthly)</h4>
-                        <div className="space-y-2 text-sm">
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Groceries</span>
-                            <span className="font-medium">€{city.groceries}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Dining Out</span>
-                            <span className="font-medium">€{city.dining}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Utilities</span>
-                            <span className="font-medium">€{city.utilities}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Transportation</span>
-                            <span className="font-medium">€{city.transportation}</span>
-                          </div>
-                        </div>
-                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </DocumentSection>
         )}
 
         {/* Job Market Tab */}
         {activeTab === 'jobs' && destination.job_market && (
-          <div className="space-y-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">
-              Job Market in {destination.country_name}
-            </h2>
+          <DocumentSection id="jobs">
+            <div className="space-y-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">
+                Job Market in {destination.country_name}
+              </h2>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {destination.job_market.avgSalaryTech && (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {destination.job_market.avgSalaryTech && (
+                  <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                    <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                      <span>💰</span> Avg Tech Salary
+                    </h3>
+                    <div className="text-2xl font-bold text-green-600">
+                      €{destination.job_market.avgSalaryTech.toLocaleString()}/yr
+                    </div>
+                  </div>
+                )}
+
+                {destination.job_market.avgWorkHoursWeek && (
+                  <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                    <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                      <span>⏰</span> Work Hours
+                    </h3>
+                    <div className="text-2xl font-bold text-gray-900">
+                      {destination.job_market.avgWorkHoursWeek}h/week
+                    </div>
+                  </div>
+                )}
+
+                {destination.job_market.vacationDaysStandard && (
+                  <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                    <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                      <span>🏖️</span> Vacation Days
+                    </h3>
+                    <div className="text-2xl font-bold text-blue-600">
+                      {destination.job_market.vacationDaysStandard} days/yr
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {destination.job_market.topIndustries && destination.job_market.topIndustries.length > 0 && (
                 <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
                   <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                    <span>💰</span> Avg Tech Salary
+                    <span>🏢</span> Top Industries
                   </h3>
-                  <div className="text-2xl font-bold text-green-600">
-                    €{destination.job_market.avgSalaryTech.toLocaleString()}/yr
+                  <div className="flex flex-wrap gap-2">
+                    {destination.job_market.topIndustries.map((industry, i) => (
+                      <span key={i} className="px-4 py-2 bg-stone-100 text-stone-700 rounded-full text-sm font-medium">
+                        {industry}
+                      </span>
+                    ))}
                   </div>
                 </div>
               )}
 
-              {destination.job_market.avgWorkHoursWeek && (
+              {destination.job_market.growingSectors && destination.job_market.growingSectors.length > 0 && (
                 <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
                   <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                    <span>⏰</span> Work Hours
+                    <span>📈</span> Growing Sectors
                   </h3>
-                  <div className="text-2xl font-bold text-gray-900">
-                    {destination.job_market.avgWorkHoursWeek}h/week
-                  </div>
-                </div>
-              )}
-
-              {destination.job_market.vacationDaysStandard && (
-                <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-                  <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                    <span>🏖️</span> Vacation Days
-                  </h3>
-                  <div className="text-2xl font-bold text-blue-600">
-                    {destination.job_market.vacationDaysStandard} days/yr
+                  <div className="flex flex-wrap gap-2">
+                    {destination.job_market.growingSectors.map((sector, i) => (
+                      <span key={i} className="px-4 py-2 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+                        {sector}
+                      </span>
+                    ))}
                   </div>
                 </div>
               )}
             </div>
-
-            {destination.job_market.topIndustries && destination.job_market.topIndustries.length > 0 && (
-              <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-                <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <span>🏢</span> Top Industries
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {destination.job_market.topIndustries.map((industry, i) => (
-                    <span key={i} className="px-4 py-2 bg-stone-100 text-stone-700 rounded-full text-sm font-medium">
-                      {industry}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {destination.job_market.growingSectors && destination.job_market.growingSectors.length > 0 && (
-              <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-                <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <span>📈</span> Growing Sectors
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {destination.job_market.growingSectors.map((sector, i) => (
-                    <span key={i} className="px-4 py-2 bg-green-100 text-green-800 rounded-full text-sm font-medium">
-                      {sector}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
+          </DocumentSection>
         )}
       </div>
 
@@ -714,5 +731,6 @@ export default function DestinationClient({ slug }: { slug: string }) {
         </div>
       </div>
     </div>
+    </IntelligentDocument>
   );
 }
