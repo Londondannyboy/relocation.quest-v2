@@ -1815,19 +1815,6 @@ In this chat, keep it SHORT:
         }
 
     @copilotkit_agent.tool
-    async def show_featured_destinations(ctx: RunContext[StateDeps[ATLASAgentState]]) -> dict:
-        """Show featured relocation destinations."""
-        return {
-            "found": True,
-            "destinations": [
-                {"name": "Portugal", "image": "/destinations/portugal.jpg", "highlight": "D7 Visa"},
-                {"name": "Cyprus", "image": "/destinations/cyprus.jpg", "highlight": "12.5% Tax"},
-                {"name": "Dubai", "image": "/destinations/dubai.jpg", "highlight": "0% Income Tax"}
-            ],
-            "ui_component": "DestinationGrid",
-        }
-
-    @copilotkit_agent.tool
     async def delegate_to_destination_expert(ctx: RunContext[StateDeps[ATLASAgentState]], topic: str) -> dict:
         """
         Search for guides, maps, and visa timelines about a relocation destination.
