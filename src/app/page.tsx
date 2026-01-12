@@ -1,7 +1,7 @@
 "use client";
 
 import { CopilotSidebar } from "@copilotkit/react-ui";
-import { useRenderToolCall, useCopilotChat, useCoAgent, useCopilotAction } from "@copilotkit/react-core";
+import { useRenderToolCall, useCopilotChat, useCoAgent } from "@copilotkit/react-core";
 import { Role, TextMessage } from "@copilotkit/runtime-client-gql";
 import { VoiceWidget } from "@/components/VoiceWidget";
 import { ArticleGrid } from "@/components/generative-ui/ArticleGrid";
@@ -344,14 +344,6 @@ export default function Home() {
   const [currentHeroIndex, setCurrentHeroIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
 
-  // IntelligentDocument state - currency and comparison mode
-  const [userCurrency, setUserCurrency] = useState("USD");
-  const [comparisonMode, setComparisonMode] = useState<{
-    dest1: string;
-    dest2: string;
-    aspects: string[];
-  } | null>(null);
-
   // Fetch hero images for revolving background
   useEffect(() => {
     async function fetchHeroImages() {
@@ -466,70 +458,6 @@ export default function Home() {
       }
     }
   }, [user?.id, user?.name, user?.email, userName, agentState?.user?.id, setAgentState]);
-
-  // =============================================================================
-  // FRONTEND COPILOT ACTIONS - Allow agent to control UI
-  // =============================================================================
-
-  // Action: Set user's preferred currency for cost displays
-  useCopilotAction({
-    name: "set_user_currency",
-    description: "Set the user's home currency for all cost displays and conversions. Use this when the user mentions their home currency or asks to see costs in a specific currency.",
-    parameters: [
-      {
-        name: "currency",
-        type: "string",
-        description: "ISO currency code (e.g., USD, EUR, GBP, AUD, CAD)",
-      }
-    ],
-    handler: async ({ currency }) => {
-      const normalizedCurrency = currency.toUpperCase();
-      setUserCurrency(normalizedCurrency);
-      console.log('[ATLAS] User currency set to:', normalizedCurrency);
-      return {
-        success: true,
-        currency: normalizedCurrency,
-        message: `Currency preference set to ${normalizedCurrency}`
-      };
-    },
-  });
-
-  // Action: Open side-by-side destination comparison
-  useCopilotAction({
-    name: "compare_destinations",
-    description: "Open a side-by-side comparison view of two destinations. Use this when the user wants to compare two countries or cities.",
-    parameters: [
-      {
-        name: "destination1",
-        type: "string",
-        description: "First destination to compare",
-      },
-      {
-        name: "destination2",
-        type: "string",
-        description: "Second destination to compare",
-      },
-      {
-        name: "aspects",
-        type: "string[]",
-        description: "Aspects to compare (e.g., ['cost', 'visa', 'lifestyle', 'weather'])",
-      }
-    ],
-    handler: async ({ destination1, destination2, aspects }) => {
-      setComparisonMode({
-        dest1: destination1,
-        dest2: destination2,
-        aspects: aspects || ["cost", "visa", "lifestyle"]
-      });
-      console.log('[ATLAS] Comparison mode:', destination1, 'vs', destination2);
-      return {
-        success: true,
-        comparing: [destination1, destination2],
-        aspects: aspects || ["cost", "visa", "lifestyle"],
-        message: `Opening comparison: ${destination1} vs ${destination2}`
-      };
-    },
-  });
 
   // Handle voice messages
   // IMPORTANT: Only forward USER messages to CopilotKit to trigger tools

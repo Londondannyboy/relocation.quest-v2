@@ -78,37 +78,24 @@ export function IntelligentDocument({
     },
   });
 
-  // Frontend action: Update which sections are highlighted
+  // Frontend action: Highlight a specific section
   useCopilotAction({
-    name: "update_destination_view",
-    description: "Highlight specific sections on the page to draw user's attention to relevant content. Use this when the user asks about visas, costs, jobs, etc. to make the relevant section visually prominent.",
+    name: "highlight_section",
+    description: "Highlight a specific section on the page to draw user's attention. Use when user asks about visas, costs, jobs, etc.",
     parameters: [
       {
-        name: "sections",
-        type: "string[]",
-        description: "Array of section IDs to highlight (e.g., ['visas', 'costs'])",
-      },
-      {
-        name: "highlight",
-        type: "boolean",
-        description: "Whether to highlight (true) or clear highlights (false)",
+        name: "section",
+        type: "string",
+        description: "Section ID to highlight (e.g., 'visas', 'costs', 'jobs', 'overview')",
       }
     ],
-    handler: async ({ sections, highlight }) => {
-      if (highlight && Array.isArray(sections) && sections.length > 0) {
-        // Highlight each section
-        sections.forEach((sectionId: string) => {
-          highlightSection(sectionId);
-        });
-        return {
-          success: true,
-          highlighted: sections,
-          message: `Highlighted sections: ${sections.join(", ")}`
-        };
-      } else {
-        clearHighlights();
-        return { success: true, highlighted: [], message: "Cleared all highlights" };
+    handler: async ({ section }) => {
+      if (section) {
+        highlightSection(section);
+        return { success: true, highlighted: section };
       }
+      clearHighlights();
+      return { success: true, highlighted: null };
     },
   });
 
