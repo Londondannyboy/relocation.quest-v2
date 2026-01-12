@@ -284,15 +284,21 @@ def get_zep_client() -> Optional["AsyncZep"]:
     return _zep_client
 
 
+def get_zep_user_id(user_id: str) -> str:
+    """Prefix user_id with project name to separate from other projects."""
+    return f"relocation_{user_id}"
+
+
 async def get_user_memory(user_id: str) -> dict:
     """Retrieve user's conversation history and interests from Zep."""
     client = get_zep_client()
     if not client:
         return {"found": False, "is_returning": False, "facts": []}
 
+    zep_user_id = get_zep_user_id(user_id)
     try:
         results = await client.graph.search(
-            user_id=user_id,
+            user_id=zep_user_id,
             query="user name interests preferences topics discussed destinations relocation",
             limit=20,
             scope="edges",
@@ -319,16 +325,17 @@ async def store_to_memory(user_id: str, message: str, role: str = "user") -> boo
     if not client:
         return False
 
+    zep_user_id = get_zep_user_id(user_id)
     try:
         # Ensure user exists
         try:
-            await client.user.get(user_id)
+            await client.user.get(zep_user_id)
         except Exception:
-            await client.user.add(user_id=user_id)
+            await client.user.add(user_id=zep_user_id)
 
         # Add message to graph
         await client.graph.add(
-            user_id=user_id,
+            user_id=zep_user_id,
             type="message",
             data=f"{role}: {message}",
         )
