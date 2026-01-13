@@ -16,6 +16,15 @@ import { CostOfLivingChart } from "@/components/generative-ui/CostOfLivingChart"
 import { DestinationComparison } from "@/components/generative-ui/DestinationComparison";
 import { VisaGrid } from "@/components/generative-ui/VisaGrid";
 import { ToolCTA } from "@/components/generative-ui/ToolCTA";
+// New extended destination components for single-page conversational experience
+import { EducationStats } from "@/components/generative-ui/EducationStats";
+import { CompanyIncorporation } from "@/components/generative-ui/CompanyIncorporation";
+import { PropertyInfo } from "@/components/generative-ui/PropertyInfo";
+import { ExpatriateScheme } from "@/components/generative-ui/ExpatriateScheme";
+import { ResidencyRequirements } from "@/components/generative-ui/ResidencyRequirements";
+import { TimelineNavigation } from "@/components/TimelineNavigation";
+import { AnimatedSection } from "@/components/AnimatedSection";
+import { ConversationProvider, useConversation, type ConfirmedDestination } from "@/contexts/ConversationContext";
 import { DestinationExpertMessage, DestinationExpertThinking } from "@/components/DestinationExpert";
 import { CustomUserMessage, ChatUserContext } from "@/components/ChatMessages";
 import { useCallback, useEffect, useState } from "react";
@@ -791,6 +800,169 @@ export default function Home() {
           url={result.url}
           tool_type="quiz"
         />
+      );
+    },
+  });
+
+  // =============================================================================
+  // CONFIRM DESTINATION: Full section reveal for single-page conversational experience
+  // This renders ALL destination sections at once when user confirms a destination
+  // =============================================================================
+
+  useRenderToolCall({
+    name: "confirm_destination",
+    render: ({ result, status }) => {
+      if (status !== "complete" || !result) {
+        return (
+          <div className="bg-stone-50 rounded-lg p-6 animate-pulse">
+            <div className="text-sm text-stone-400 mb-4">Preparing your destination guide...</div>
+            <div className="space-y-3">
+              <div className="h-4 bg-stone-200 rounded w-3/4"></div>
+              <div className="h-4 bg-stone-200 rounded w-1/2"></div>
+              <div className="h-4 bg-stone-200 rounded w-2/3"></div>
+            </div>
+          </div>
+        );
+      }
+
+      if (!result?.confirmed || !result?.found) {
+        return (
+          <div className="p-4 bg-stone-50 rounded-lg text-stone-500">
+            {result?.message || "Destination not found. Would you like to explore a different country?"}
+          </div>
+        );
+      }
+
+      // Build list of available sections based on what has data
+      const availableSections: string[] = ["overview"];
+      if (result.visas?.length > 0) availableSections.push("visas");
+      if (result.cost_of_living?.length > 0) availableSections.push("costs");
+      if (result.job_market && Object.keys(result.job_market).length > 0) availableSections.push("jobs");
+      if (result.education_stats && Object.keys(result.education_stats).length > 0) availableSections.push("education");
+      if (result.company_incorporation && Object.keys(result.company_incorporation).length > 0) availableSections.push("company");
+      if (result.property_info && Object.keys(result.property_info).length > 0) availableSections.push("property");
+      if (result.expatriate_scheme && Object.keys(result.expatriate_scheme).length > 0) availableSections.push("expatriate");
+      if (result.residency_requirements && Object.keys(result.residency_requirements).length > 0) availableSections.push("residency");
+
+      // Render full destination reveal with all sections
+      return (
+        <div className="space-y-6">
+          {/* Hero Header */}
+          <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl p-6 border border-amber-200">
+            <div className="flex items-center gap-4 mb-4">
+              <span className="text-5xl">{result.flag}</span>
+              <div>
+                <h2 className="text-2xl font-bold text-stone-800">{result.destination}</h2>
+                {result.hero_subtitle && (
+                  <p className="text-stone-600">{result.hero_subtitle}</p>
+                )}
+                {result.region && (
+                  <span className="text-sm text-amber-700 bg-amber-100 px-2 py-0.5 rounded mt-1 inline-block">
+                    {result.region}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Quick Facts */}
+            {result.quick_facts?.length > 0 && (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
+                {result.quick_facts.slice(0, 8).map((fact: { icon: string; label: string; value: string }, i: number) => (
+                  <div key={i} className="bg-white/70 rounded-lg p-3 text-center">
+                    <span className="text-lg">{fact.icon}</span>
+                    <div className="text-xs text-stone-500">{fact.label}</div>
+                    <div className="font-medium text-stone-800 text-sm">{fact.value}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Visa Options */}
+          {result.visas?.length > 0 && (
+            <AnimatedSection id="visas" index={1}>
+              <VisaGrid
+                country={result.destination}
+                flag={result.flag}
+                visas={result.visas}
+              />
+            </AnimatedSection>
+          )}
+
+          {/* Cost of Living */}
+          {result.cost_of_living?.length > 0 && (
+            <AnimatedSection id="costs" index={2}>
+              <CostOfLivingChart
+                country={result.destination}
+                flag={result.flag}
+                cities={result.cost_of_living}
+                job_market={result.job_market}
+              />
+            </AnimatedSection>
+          )}
+
+          {/* Education Stats */}
+          {result.education_stats && Object.keys(result.education_stats).length > 0 && (
+            <AnimatedSection id="education" index={3}>
+              <EducationStats
+                country={result.destination}
+                flag={result.flag}
+                {...result.education_stats}
+              />
+            </AnimatedSection>
+          )}
+
+          {/* Company Incorporation */}
+          {result.company_incorporation && Object.keys(result.company_incorporation).length > 0 && (
+            <AnimatedSection id="company" index={4}>
+              <CompanyIncorporation
+                country={result.destination}
+                flag={result.flag}
+                {...result.company_incorporation}
+              />
+            </AnimatedSection>
+          )}
+
+          {/* Property Info */}
+          {result.property_info && Object.keys(result.property_info).length > 0 && (
+            <AnimatedSection id="property" index={5}>
+              <PropertyInfo
+                country={result.destination}
+                flag={result.flag}
+                {...result.property_info}
+              />
+            </AnimatedSection>
+          )}
+
+          {/* Expatriate Scheme */}
+          {result.expatriate_scheme && Object.keys(result.expatriate_scheme).length > 0 && (
+            <AnimatedSection id="expatriate" index={6}>
+              <ExpatriateScheme
+                country={result.destination}
+                flag={result.flag}
+                {...result.expatriate_scheme}
+              />
+            </AnimatedSection>
+          )}
+
+          {/* Residency Requirements */}
+          {result.residency_requirements && Object.keys(result.residency_requirements).length > 0 && (
+            <AnimatedSection id="residency" index={7}>
+              <ResidencyRequirements
+                country={result.destination}
+                flag={result.flag}
+                {...result.residency_requirements}
+              />
+            </AnimatedSection>
+          )}
+
+          {/* Continue Conversation CTA */}
+          <div className="text-center py-4">
+            <p className="text-sm text-stone-500">
+              Ask me anything specific about {result.destination} - visas, costs, neighborhoods, or lifestyle
+            </p>
+          </div>
+        </div>
       );
     },
   });

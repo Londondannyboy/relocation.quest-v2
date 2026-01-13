@@ -287,7 +287,13 @@ async def get_destination_by_slug(slug: str) -> Optional[dict]:
                     slug, country_name, flag, region, language,
                     hero_title, hero_subtitle, hero_image_url,
                     quick_facts, highlights, visas, cost_of_living,
-                    job_market, faqs
+                    job_market, faqs,
+                    -- Extended fields (new)
+                    COALESCE(education_stats, '{}'::jsonb) as education_stats,
+                    COALESCE(company_incorporation, '{}'::jsonb) as company_incorporation,
+                    COALESCE(property_info, '{}'::jsonb) as property_info,
+                    COALESCE(expatriate_scheme, '{}'::jsonb) as expatriate_scheme,
+                    COALESCE(residency_requirements, '{}'::jsonb) as residency_requirements
                 FROM destinations
                 WHERE slug = $1 AND enabled = true
             """, slug.lower())
@@ -302,6 +308,55 @@ async def get_destination_by_slug(slug: str) -> Optional[dict]:
             return None
     except Exception as e:
         print(f"[ATLAS DB] Error looking up destination: {e}", file=sys.stderr)
+        return None
+
+
+async def get_full_destination_for_confirmation(slug: str) -> Optional[dict]:
+    """
+    Get complete destination data for confirm_destination tool.
+
+    Returns ALL fields needed for the full section reveal including
+    extended fields: education_stats, company_incorporation, property_info,
+    expatriate_scheme, residency_requirements.
+    """
+    try:
+        async with get_connection() as conn:
+            result = await conn.fetchrow("""
+                SELECT
+                    slug, country_name, flag, region, language,
+                    hero_title, hero_subtitle, hero_image_url,
+                    quick_facts, highlights, visas, cost_of_living,
+                    job_market, faqs,
+                    COALESCE(education_stats, '{}'::jsonb) as education_stats,
+                    COALESCE(company_incorporation, '{}'::jsonb) as company_incorporation,
+                    COALESCE(property_info, '{}'::jsonb) as property_info,
+                    COALESCE(expatriate_scheme, '{}'::jsonb) as expatriate_scheme,
+                    COALESCE(residency_requirements, '{}'::jsonb) as residency_requirements
+                FROM destinations
+                WHERE slug = $1 AND enabled = true
+            """, slug.lower())
+
+            if result:
+                data = dict(result)
+                print(f"[ATLAS DB] Full destination data for confirmation: {data['country_name']}", file=sys.stderr)
+
+                # Log which extended fields have data
+                has_education = bool(data.get('education_stats') and data['education_stats'] != {})
+                has_company = bool(data.get('company_incorporation') and data['company_incorporation'] != {})
+                has_property = bool(data.get('property_info') and data['property_info'] != {})
+                has_expatriate = bool(data.get('expatriate_scheme') and data['expatriate_scheme'] != {})
+                has_residency = bool(data.get('residency_requirements') and data['residency_requirements'] != {})
+
+                print(f"[ATLAS DB] Extended fields: education={has_education}, company={has_company}, "
+                      f"property={has_property}, expatriate={has_expatriate}, residency={has_residency}",
+                      file=sys.stderr)
+
+                return data
+
+            print(f"[ATLAS DB] Destination not found for confirmation: {slug}", file=sys.stderr)
+            return None
+    except Exception as e:
+        print(f"[ATLAS DB] Error getting full destination data: {e}", file=sys.stderr)
         return None
 
 

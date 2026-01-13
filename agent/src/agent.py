@@ -45,6 +45,7 @@ from .database import (
     get_visa_info,
     get_cost_of_living,
     search_destinations as db_search_destinations,
+    get_full_destination_for_confirmation,
 )
 from .destination_expert import destination_expert_agent, DestinationExpertDeps
 
@@ -2150,6 +2151,100 @@ In this chat, keep it SHORT:
             "destinations": featured,
             "count": len(featured),
             "ui_component": "DestinationGrid",
+        }
+
+    @copilotkit_agent.tool
+    async def confirm_destination(
+        ctx: RunContext[StateDeps[ATLASAgentState]],
+        destination: str
+    ) -> dict:
+        """
+        Confirm a destination and trigger full section reveal with all information.
+
+        Call this ONLY when user explicitly confirms they want to explore a specific destination:
+        - "Yes, Cyprus" / "Yes, let's do Cyprus"
+        - "Let's go with Portugal"
+        - "I want to move to Dubai"
+        - "Tell me everything about Spain"
+        - "Show me all the details for Thailand"
+        - "I'm ready to learn about [destination]"
+
+        DO NOT call this for casual mentions or questions like:
+        - "What's the weather like in Portugal?" (use search instead)
+        - "How does Cyprus compare to Malta?" (use compare tool)
+
+        This triggers the FULL destination experience with ALL sections:
+        - Overview (quick facts, highlights)
+        - Visa options
+        - Cost of living
+        - Job market
+        - Education (schools, universities)
+        - Company incorporation (tax, setup)
+        - Property (prices, taxes)
+        - Expatriate schemes (Non-Dom, etc.)
+        - Residency requirements (pathways to PR/citizenship)
+
+        Args:
+            destination: The confirmed destination name (e.g., "Cyprus", "Portugal")
+        """
+        logger.info(f"[confirm_destination] User confirmed destination: {destination}")
+
+        # Normalize destination name to slug
+        slug = destination.lower().strip().replace(" ", "-")
+
+        # Try direct slug lookup first
+        dest_data = await get_full_destination_for_confirmation(slug)
+
+        # If not found, try searching
+        if not dest_data:
+            logger.info(f"[confirm_destination] Direct lookup failed, searching for: {destination}")
+            search_results = await db_search_destinations(destination)
+            if search_results:
+                dest_data = await get_full_destination_for_confirmation(search_results[0]["slug"])
+
+        if not dest_data:
+            logger.warning(f"[confirm_destination] Could not find destination: {destination}")
+            return {
+                "found": False,
+                "confirmed": False,
+                "destination": destination,
+                "message": f"I couldn't find detailed information for {destination}. Would you like to try a different destination?",
+                "ui_component": None,
+            }
+
+        # Build comprehensive response with ALL section data
+        logger.info(f"[confirm_destination] Building full reveal for: {dest_data['country_name']}")
+
+        return {
+            "found": True,
+            "confirmed": True,
+            "destination": dest_data.get("country_name"),
+            "slug": dest_data.get("slug"),
+            "flag": dest_data.get("flag", "🌍"),
+            "region": dest_data.get("region"),
+            "hero_title": dest_data.get("hero_title"),
+            "hero_subtitle": dest_data.get("hero_subtitle"),
+            "hero_image_url": dest_data.get("hero_image_url"),
+            "language": dest_data.get("language"),
+
+            # Existing sections
+            "quick_facts": dest_data.get("quick_facts", []),
+            "highlights": dest_data.get("highlights", []),
+            "visas": dest_data.get("visas", []),
+            "cost_of_living": dest_data.get("cost_of_living", []),
+            "job_market": dest_data.get("job_market", {}),
+            "faqs": dest_data.get("faqs", []),
+
+            # Extended sections (NEW)
+            "education_stats": dest_data.get("education_stats", {}),
+            "company_incorporation": dest_data.get("company_incorporation", {}),
+            "property_info": dest_data.get("property_info", {}),
+            "expatriate_scheme": dest_data.get("expatriate_scheme", {}),
+            "residency_requirements": dest_data.get("residency_requirements", {}),
+
+            # UI hints for frontend
+            "ui_component": "FullDestinationReveal",
+            "trigger_phase_change": "confirmed",
         }
 
     # Create AG-UI app with StateDeps
