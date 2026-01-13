@@ -581,13 +581,14 @@ export default function Home() {
     name: "show_featured_destinations",
     render: ({ result, status }) => {
       if (status !== "complete" || !result) return <ToolLoading title="Loading destinations..." />;
-      if (!result?.found || !result?.destinations) {
+      if (!result?.found || !result?.destinations || !Array.isArray(result.destinations)) {
         return (
           <div className="p-4 bg-stone-50 rounded-lg text-stone-500">
             {result?.message || "Couldn't load destinations"}
           </div>
         );
       }
+      const destinations = result.destinations as Array<{ name: string; flag: string; region: string; slug: string; highlight?: string; featured?: boolean }>;
       return (
         <div className="space-y-3">
           <div className="flex items-center justify-between">
@@ -595,7 +596,7 @@ export default function Home() {
             <span className="text-sm text-stone-500">{result.total_destinations} countries</span>
           </div>
           <div className="grid grid-cols-2 gap-3">
-            {result.destinations.slice(0, 8).map((dest: { name: string; flag: string; region: string; slug: string; highlight?: string; featured?: boolean }) => (
+            {destinations.slice(0, 8).map((dest) => (
               <DestinationCardCompact
                 key={dest.slug}
                 name={dest.name}
@@ -865,9 +866,9 @@ export default function Home() {
             </div>
 
             {/* Quick Facts */}
-            {result.quick_facts?.length > 0 && (
+            {Array.isArray(result.quick_facts) && result.quick_facts.length > 0 && (
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
-                {result.quick_facts.slice(0, 8).map((fact: { icon: string; label: string; value: string }, i: number) => (
+                {(result.quick_facts as Array<{ icon: string; label: string; value: string }>).slice(0, 8).map((fact, i) => (
                   <div key={i} className="bg-white/70 rounded-lg p-3 text-center">
                     <span className="text-lg">{fact.icon}</span>
                     <div className="text-xs text-stone-500">{fact.label}</div>
@@ -879,7 +880,7 @@ export default function Home() {
           </div>
 
           {/* Visa Options */}
-          {result.visas?.length > 0 && (
+          {Array.isArray(result.visas) && result.visas.length > 0 && (
             <AnimatedSection id="visas" index={1}>
               <VisaGrid
                 country={result.destination}
@@ -890,7 +891,7 @@ export default function Home() {
           )}
 
           {/* Cost of Living */}
-          {result.cost_of_living?.length > 0 && (
+          {Array.isArray(result.cost_of_living) && result.cost_of_living.length > 0 && (
             <AnimatedSection id="costs" index={2}>
               <CostOfLivingChart
                 country={result.destination}
